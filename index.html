@@ -2,8 +2,8 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0b1016"><meta name="description" content="その現場、俺たちが守る。アイドル現場の厄介行為を取り締まる、60秒のドット絵アーケードゲーム。">
-<title>ドル現場警備録 | NEXUS SECURITY</title>
+<meta name="theme-color" content="#0b1016"><meta name="description" content="現場で厄介、絶対許さない。アイドル現場の厄介行為を取り締まる、60秒のドット絵アーケードゲーム。">
+<title>ドル現場防衛戦 | NEXUS SECURITY</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%23c5fa5f' d='M4 3h24v18L16 30 4 21z'/%3E%3Cpath fill='%230b1016' d='M10 9h4l5 8V9h4v14h-4l-5-8v8h-4z'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="style.css">
 </head>
@@ -13,8 +13,8 @@
 <main>
 <section id="menu" class="menu-screen">
 <div class="intro-grid">
-<div class="intro-copy"><p class="eyebrow"><span class="tiny-bar"></span> IDOL LIVE SECURITY ACTION</p><h1>ドル現場<span>警備録<span class="title-dot">.</span></span></h1><p class="tagline">推しのステージを、守り抜け。</p><div class="intro-stats"><span><b>60</b> 秒の現場勝負</span><span><b>07</b> 種の警戒対象</span></div></div>
-<div class="scene-preview guard-keyvisual"><div class="guard-art"><img src="security-team.png" alt="黒い制服とサングラスで腕を組むNEXUS SECURITYの警備員、ハヤトとダイチ" fetchpriority="high" decoding="async"></div><canvas id="preview" width="640" height="430" hidden aria-hidden="true"></canvas><div class="scene-tag"><span class="live-square"></span><span id="sceneName">下北・地下ライブハウス</span></div><div class="scene-caption"><span>NEXUS SECURITY / HAYATO &amp; DAICHI</span><b>その現場、俺たちが守る。</b></div></div>
+<div class="intro-copy"><p class="eyebrow"><span class="tiny-bar"></span> IDOL LIVE SECURITY ACTION</p><h1>ドル現場<span>防衛戦<span class="title-dot">.</span></span></h1><p class="tagline">アイドルの現場を、守り抜け。</p><div class="intro-stats"><span><b>60</b> 秒の現場勝負</span><span><b>07</b> 種の警戒対象</span></div></div>
+<div class="scene-preview guard-keyvisual"><div class="guard-art"><img src="security-team.png" alt="黒い制服とサングラスで腕を組むNEXUS SECURITYの警備員、ハヤトとダイチ" fetchpriority="high" decoding="async"></div><canvas id="preview" width="640" height="430" hidden aria-hidden="true"></canvas><div class="scene-tag"><span class="live-square"></span><span id="sceneName">下北・地下ライブハウス</span></div><div class="scene-caption"><span>NEXUS SECURITY / HAYATO &amp; DAICHI</span><b>現場で厄介、絶対許さない。</b></div></div>
 </div>
 <div class="mission-heading"><div><span class="eyebrow">MISSION SELECT</span><h2>今日の現場を選べ。</h2></div><p>会場 × アイドルで、現場は変わる。</p></div>
 <div class="selection-layout">
@@ -30,7 +30,7 @@
 <aside class="live-sidebar"><p class="eyebrow">LIVE REPORT</p><h3>現場の声</h3><div id="liveLog" class="live-log"></div><div class="policy-note">推しも、ファンも、<br>楽しめる現場へ。</div></aside></div>
 </section>
 </main>
-<footer><span>© KMC Creative Lab</span><span>DOL GENBA KEIBIROKU <span class="version">VER. 1.2</span></span></footer>
+<footer><span>© KMC Creative Lab</span><span>DOL GENBA BOUEISEN <span class="version">VER. 1.2</span></span></footer>
 </div>
 <dialog id="helpDialog"><div class="modal-header"><span class="eyebrow">FIELD MANUAL</span><button class="icon-button" data-close="helpDialog" aria-label="閉じる">×</button></div><h2>厄介だけを、見逃すな。</h2><p>60秒以内に、何人の違反者を退場させられるか。現場の平和を守りながら記録に挑め！</p><ol class="howto"><li><b>赤いマークの違反者をタップ</b><span>隊員が自動で駆けつけて対応。数字キー0〜9でも選べます。</span></li><li><b>連続対応でコンボをつなぐ</b><span>5秒以内の連続退場で得点アップ。対応の遅れは見逃しになります。</span></li><li><b>ゲージが満ちたら「一斉退場」</b><span>画面内の違反者をまとめて退場！ 善良なファンには当たりません。</span></li></ol><div class="warning-note">マークのないファンを選ぶと、誤認対応で−150点＆コンボ終了。通常のペンライト応援は違反ではありません。</div><p class="rare-manual">モッシュは2人がぶつかり合う現場をまとめて対応。ステージ乱入は登られる前に止めよう。<br><b>♥ 繋がりオタクは1公演に1度だけ。</b> アイドルとハートを交わす金色の対象を確保すると通常の10倍、1,000〜3,000点！ 数字キー0でも選択できます。</p><div id="manualLegend" class="manual-legend"></div><button class="start-button wide" data-close="helpDialog"><span>了解、現場を守る</span></button></dialog>
 <dialog id="pauseDialog"><div class="modal-header"><span class="eyebrow">ON STANDBY</span></div><h2>いったん、待機。</h2><p>残り時間は止まっています。</p><button id="resumeBtn" class="start-button wide"><span>警備を再開する</span></button><button id="backBtn" class="secondary-button wide">現場選択に戻る</button></dialog>
