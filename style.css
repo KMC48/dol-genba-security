@@ -13,7 +13,7 @@
 .intro-grid{grid-template-columns:.85fr 1.15fr;gap:40px;padding-top:30px;padding-bottom:32px}
 .guard-keyvisual{height:auto;width:100%;max-width:490px;justify-self:end;aspect-ratio:1.18;border-color:#8e7950;box-shadow:6px 6px 0 #29261c}
 .guard-art{position:absolute;top:0;left:0;width:100%;aspect-ratio:1;overflow:hidden;background:#172c39}
-.guard-art img{position:absolute;max-width:none;left:0;top:-17.7%;width:183.3%;height:auto;image-rendering:pixelated}
+.guard-art img{position:absolute;max-width:none;left:0;top:-15%;width:181%;height:auto;image-rendering:pixelated}
 .guard-keyvisual canvas[hidden]{display:none}
 .guard-keyvisual .scene-caption{padding-top:58px;padding-bottom:21px;background:linear-gradient(transparent,#081017e8 48%)}
 .guard-keyvisual .scene-caption span{color:#f2cc7b;font-size:12px;letter-spacing:1.2px}
@@ -33,3 +33,6 @@
  .intro-copy .tagline{font-size:14px}
  .intro-stats{flex-direction:row;padding-top:12px;gap:22px}.intro-stats span{font-size:12px}
 }
+
+/* Attached 2026-10-03 design sheet: face A, source pixels untouched. */
+.guard-portrait img{width:675px;left:-383px;top:-44px}

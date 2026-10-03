@@ -11,9 +11,9 @@ const els={};const getEl=id=>els[id]??=new El(id);getEl('game').getContext=()=>c
 const registry={};const storage={};
 const context={console,Math,Number,JSON,Error,Promise,AbortController,performance:{now:()=>0},Image:function(){return images.shift()},document:{getElementById:getEl,querySelectorAll:()=>[],addEventListener(){},body:new El('body'),modelContext:{registerTool(t){registry[t.name]=t}}},window:{matchMedia:()=>({matches:false}),scrollTo(){},addEventListener(){}},localStorage:{getItem:k=>storage[k]??null,setItem:(k,v)=>storage[k]=v},requestAnimationFrame(){}};
 (async()=>{
-for(const p of ['characters.png','venues.png']){const im=await loadImage(base+p);Object.defineProperty(im,'src',{set(){}});images.push(im)}
+for(const p of ['characters.png','venues.png','security-sprites.png','blond-fans.png']){const im=await loadImage(base+p);Object.defineProperty(im,'src',{set(){}});images.push(im)}
 vm.createContext(context);
-vm.runInContext(fs.readFileSync(base+'game.js','utf8')+'\nglobalThis.test={startGame,resetGame,beginPlay,update,chooseFan,eject,special,pause,resume,goMenu,spawnFan,drawGame,drawPreview,moshPose,spawnScheduledFans,getState:()=>state,getMode:()=>mode,setConfig:(v,g)=>{chosenVenue=v;chosenGroup=g},setReady:()=>assetReady=true,venues:VENUES,groups:GROUPS};',context);
+vm.runInContext(fs.readFileSync(base+'game.js','utf8')+'\nglobalThis.test={startGame,resetGame,beginPlay,update,chooseFan,eject,special,pause,resume,goMenu,spawnFan,drawGame,drawPreview,moshPose,spawnScheduledFans,frontRowY,stageY,idolPose,idolPresence,missConnection,finish,getState:()=>state,getMode:()=>mode,setConfig:(v,g)=>{chosenVenue=v;chosenGroup=g},setReady:()=>assetReady=true,venues:VENUES,groups:GROUPS};',context);
 
 const t=context.test;t.setReady();
 assert.equal(Object.keys(registry).length,2);
@@ -47,6 +47,29 @@ const r=t.spawnFan(false,6);s.combo=20;s.lastEject=s.elapsed;t.eject(r);assert.e
 // Even a saturated arena must still emit its one reserved rare target, then never repeat after escape.
 t.resetGame();t.beginPlay();s=t.getState();s.fans=[];while(t.spawnFan(true)){};s.elapsed=37;t.spawnScheduledFans();assert(s.rareSpawned);assert.equal(s.fans.filter(f=>f.type===6&&!f.normal).length,1);const rare2=s.fans.find(f=>f.type===6&&!f.normal);rare2.age=rare2.life;t.update(.05);assert.equal(rare2.status,'gone');s.elapsed=49;t.spawnScheduledFans();assert.equal(s.fans.filter(f=>f.type===6&&!f.normal).length,0,'escaped rare does not respawn');
 t.resetGame();t.beginPlay();s=t.getState();assert.equal(s.rareSpawned,false,'retry resets rare schedule');
+// A missed connection removes only its idol and deducts exactly 1,000 once.
+t.setConfig(0,0);t.resetGame();t.beginPlay();s=t.getState();s.fans=[];s.spawnClock=100;
+const escaped=t.spawnFan(false,6);assert.equal(escaped.life,4);assert(escaped.life<Math.min(...t.venues.map(v=>v.life)));s.score=200;t.update(3.95);assert.equal(s.rarePenalty,0);assert.equal(escaped.status,'active');t.update(.1);
+assert.equal(s.score,-800);assert.equal(s.rarePenalty,1000);assert.equal(s.idolDeparture.index,2);assert.equal(s.missed,1);
+assert.equal(getEl('score').textContent,'−00800','negative HUD sign precedes zero padding');
+t.missConnection();assert.equal(s.score,-800,'departure penalty applies only once');
+t.pause();const departureTime=s.elapsed;t.update(2);assert.equal(s.elapsed,departureTime);t.resume();
+t.update(1.7);assert(!t.idolPresence(2).visible);assert.equal([0,1,2,3,4].filter(i=>t.idolPresence(i).visible).length,4);
+const ordinary=t.spawnFan(true);t.chooseFan(ordinary);assert.equal(s.score,-950,'misidentification cannot increase a negative score');
+t.finish();assert(getEl('resultRare').textContent.includes('1人脱退'));assert(getEl('resultRare').textContent.includes('1,000'));assert.equal(getEl('resultScore').textContent,'-950');
+t.resetGame();t.beginPlay();s=t.getState();s.fans=[];s.spawnClock=100;assert.equal(s.idolDeparture,null);assert.equal(s.rarePenalty,0);assert([0,1,2,3,4].every(i=>t.idolPresence(i).visible));
+const captured=t.spawnFan(false,6);t.eject(captured,true);t.update(11);assert.equal(s.idolDeparture,null);assert.equal(s.rarePenalty,0);assert.equal(s.rarePoints,1000,'special capture protects the idol');
+// Ordinary missed offenses do not remove an idol or apply the connection penalty.
+t.resetGame();t.beginPlay();s=t.getState();s.fans=[];s.spawnClock=100;const ordinaryMiss=t.spawnFan(false,4);ordinaryMiss.age=ordinaryMiss.life;t.update(.05);assert.equal(s.rarePenalty,0);assert.equal(s.idolDeparture,null);
+// Front-row occupancy must never fall back to a rear-row slot, in any venue.
+for(let v=0;v<4;v++){
+ t.setConfig(v,3);t.resetGame();s=t.getState();s.fans=[];
+ for(let i=0;i<4;i++){const f=t.spawnFan(false,4);assert(f&&f.slot<4);assert(Math.abs(f.y-t.frontRowY())<=3)}
+ assert.equal(t.spawnFan(false,4),null,'full front row defers spawn, even with empty rear rows');
+ const freedSlot=s.fans[1].slot;s.fans[1].status='gone';const replacement=t.spawnFan(false,4);assert.equal(replacement.slot,freedSlot);
+ const pose=t.idolPose(v);assert.equal(pose.y,t.stageY(v));assert(pose.height>43);assert(pose.y<t.frontRowY(v)-84,'idols remain on stage above the audience');
+}
+t.setConfig(0,0);t.resetGame();t.beginPlay();s=t.getState();
 // Render actual gameplay code at contact and approach phases.
 s.fans=[];s.spawnClock=100;const mm=t.spawnFan(false,1);mm.x=170;mm.y=475;mm.phase=0;const rr=t.spawnFan(false,6);const vv=t.spawnFan(false,5);vv.x=490;vv.y=345;
 s.anim=.35;t.drawGame();

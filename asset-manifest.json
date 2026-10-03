@@ -1,17 +1,7 @@
-[
-  {
-    "file": "characters.png",
-    "sha256": "bdefc2c4b77a4790d9ac324822df26b8a211779077a1679ea215ef46f266b21e",
-    "bytes": 1354650
-  },
-  {
-    "file": "security-team.png",
-    "sha256": "d856cc6913a6dffaafe7d23a8733d7cbf43d875f3857b0fed5210ced303e98f2",
-    "bytes": 3145393
-  },
-  {
-    "file": "venues.png",
-    "sha256": "2a4d8c5e4aa49fec1912d3af84cdef73a82b395aed5d43774863f14ad6d93ce1",
-    "bytes": 2854649
-  }
-]
+{
+  "characters.png": "bdefc2c4b77a4790d9ac324822df26b8a211779077a1679ea215ef46f266b21e",
+  "venues.png": "2a4d8c5e4aa49fec1912d3af84cdef73a82b395aed5d43774863f14ad6d93ce1",
+  "security-team.jpeg": "87c1de72f4a92f66e14c4854e95731cd33f2d0efb0777586ef0ead6efdbd0e90",
+  "security-sprites.png": "18bb86993d45723b509bd0b605e6e98af002c31f9315f86d37ec129fc03eca37",
+  "blond-fans.png": "4846b568131fc365c63e991493b68611a70e4a4ae6058c410d4d3717af24a275"
+}

@@ -7,7 +7,7 @@
 | index.html | 選択、HUD、ヘルプ、一時停止、結果 |
 | style.css | レスポンシブUIと原画トップ |
 | game.js | 状態、出現、移動、採点、Canvas/Web Audio |
-| PNG3点 | キャラ、会場、警備員原画 |
+| 画像5点 | ファン・アイドル、会場、警備員原画、警備員スプライト、金髪ファン |
 | build.mjs / serve.mjs | Web出力/開発サーバー |
 | test-game.cjs | Node VMでの回帰テスト |
 | capacitor.config.json | ネイティブ化ひな形 |
