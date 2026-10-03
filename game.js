@@ -23,7 +23,11 @@ const TYPES=[
 const RARE_MISS_PENALTY=1000;
 const RARE_LIFETIME=4;
 const CROPS=[[73,137,210,473],[337,147,287,470],[632,78,280,537],[947,99,290,517],[39,637,273,453],[314,672,320,500],[659,712,279,461],[948,670,289,506]];
-const portraits=new Image(),venues=new Image(),guards=new Image(),blondFans=new Image();portraits.src='characters.png';venues.src='venues.png';guards.src='security-sprites.png';blondFans.src='blond-fans.png';
+const portraits=new Image(),venues=new Image(),guards=new Image(),blondFans=new Image(),blackShirtFan=new Image();portraits.src='characters.png';venues.src='venues.png';guards.src='security-sprites.png';blondFans.src='blond-fans.png';blackShirtFan.src='black-shirt-fan.png';
+const blackShirtThrow=new Image(),blackShirtMosh=new Image(),blackShirtInvasion=new Image();blackShirtThrow.src='black-shirt-throw.png';blackShirtMosh.src='black-shirt-mosh.png';blackShirtInvasion.src='black-shirt-invasion.png';
+const BLACK_ACTION_SPRITES={11:{image:blackShirtThrow,crop:[177, 101, 980, 1080]},12:{image:blackShirtMosh,crop:[173, 138, 920, 1052]},13:{image:blackShirtInvasion,crop:[198, 96, 865, 1072]}};
+const BLACK_SHIRT_CROP=[258,72,794,1128];
+const RANKS={S:{title:'伝説の現場守護神',alt:'誇らしげに立つIDOL SECURITYの警備員2人'},A:{title:'頼れる現場リーダー',alt:'金髪の最前管理オタクを連行する警備員2人'},B:{title:'普通の警備員',alt:'普通の表情で立つ警備員2人'},C:{title:'半人前の警備員',alt:'サイリウム投げオタクに詰められ、半泣きの警備員2人'},D:{title:'アイドル現場 出禁',alt:'跪く警備員2人と、大きな赤い出禁の文字'}};
 const BLOND_FAN_CROPS=[[42,18,718,987],[943,10,473,996]];
 const GUARD_CROPS=[[239,148,484,824],[885,182,359,789]];
 // Feet sit on the venue artwork's raised deck, ahead of the rear backdrop and behind the lip.
@@ -66,13 +70,17 @@ function freeSlots(){const result=[],front=frontRowY();for(let r=0;r<4;r++)for(l
 function spawnFan(normal=false,type=null){
  const which=type??weightedType(),rare=!normal&&which===6;
  if(rare&&state.rareSpawned)return null;
+ const life=rare?RARE_LIFETIME:which===5?7:VENUES[chosenVenue].life;
+ // Every offender gets their full response window before the final whistle.
+ if(!normal&&mode==='playing'&&state.remaining<life+.5)return null;
  const slots=freeSlots();if(!slots.length&&!rare)return null;
  // Never put a front-row monopolizer in another row when the front is full.
  let pool=normal?slots.filter(s=>s.slot>=4):which===4?slots.filter(s=>s.slot<4):which===5?slots.filter(s=>s.slot>=8):slots;
  if(!pool.length&&!rare)return null;
  const pos=rare?{slot:16,x:320,y:frontRowY()+56}:pool[Math.floor(rand(0,pool.length))];
  const used=state.fans.filter(f=>!f.normal&&f.status==='active').map(f=>f.key);let key=1;while(used.includes(key))key++;
- const fan={...pos,x:pos.x+(rare?0:rand(-9,9)),y:pos.y+(rare?0:rand(-3,3)),id:state.nextId++,key:normal||rare?0:key,normal,type:which,sprite:normal?(Math.random()<.5?2:3):TYPES[which].sprite,age:0,life:rare?RARE_LIFETIME:which===5?7:VENUES[chosenVenue].life,phase:rand(0,Math.PI*2),status:'active',exit:0};
+ const sprite=normal?(Math.random()<.5?2:3):which!==4&&which!==6&&Math.random()<.5?({1:12,3:11,5:13}[which]??10):TYPES[which].sprite;
+ const fan={...pos,x:pos.x+(rare?0:rand(-9,9)),y:pos.y+(rare?0:rand(-3,3)),id:state.nextId++,key:normal||rare?0:key,normal,type:which,sprite,age:0,life,phase:rand(0,Math.PI*2),status:'active',exit:0};
  if(!normal&&which===5){fan.startX=fan.x;fan.startY=fan.y;fan.targetX=640*(.29+Math.floor(rand(0,5))*.105);fan.targetY=stageY()+3}
  if(rare)state.rareSpawned=true;
  state.fans.push(fan);return fan;
@@ -118,10 +126,20 @@ function special(){if(mode!=='playing'||state.charge<100)return;const targets=st
 function pause(){if(mode!=='playing'&&mode!=='countdown')return;state.previousMode=mode;mode='paused';$('pauseDialog').showModal();updateHud()}
 function resume(){if(mode!=='paused')return;mode=state.previousMode||'playing';$('pauseDialog').close();lastFrame=performance.now();updateHud();canvas.focus({preventScroll:true})}
 function goMenu(){mode='menu';document.body.classList.remove('playing');$('resultDialog').close();$('pauseDialog').close();$('play').classList.add('hidden');$('menu').classList.remove('hidden');buildMenu();window.scrollTo({top:0,behavior:'instant'})}
+function evaluateRank({count,missed,mistakes,idolDeparture}){
+ const total=count+missed,rate=total?count/total:0;
+ const rank=total>0&&missed===0&&mistakes===0&&!idolDeparture?'S':rate>=.9&&mistakes<=2&&!idolDeparture?'A':rate>=.7&&mistakes<=5?'B':rate>=.4&&mistakes<=9?'C':'D';
+ return {rank,rate,total,...RANKS[rank]};
+}
 function finish(){
- if(mode!=='playing')return;mode='result';state.remaining=0;state.queue=[];updateHud();
- const ranks=state.count>=55?['S','伝説の現場守護神']:state.count>=38?['A','頼れる現場リーダー']:state.count>=22?['B','一人前の警備員']:['C','伸びしろの新人隊員'];
- setText('rank',ranks[0]);setText('rankTitle',ranks[1]);setText('resultMission',`${VENUES[chosenVenue].name} × ${GROUPS[chosenGroup].name}`);setText('resultCount',state.count);$('resultCount').insertAdjacentHTML('beforeend','<small>人</small>');setText('resultScore',state.score.toLocaleString());setText('resultCombo',state.maxCombo+'連');setText('resultMistakes',`${state.missed} / ${state.mistakes}`);
+ if(mode!=='playing')return;
+ // Never let a target still on the floor disappear from the rank denominator.
+ state.fans.forEach(missFan);mode='result';state.remaining=0;state.queue=[];updateHud();
+ const result=evaluateRank(state);state.rank=result.rank;
+ setText('rank',result.rank);setText('rankTitle',result.title);$('resultDialog').dataset.rank=result.rank;$('resultImage').src=`rank-${result.rank.toLowerCase()}.png`;$('resultImage').alt=result.alt;
+ setText('resultRate',`対応率 ${Math.floor(result.rate*1000)/10}%（${state.count} / ${result.total}人）`);
+ setText('rankReason',{S:'見逃しゼロ・誤認ゼロ。完璧な現場対応！',A:'対応率90%以上・誤認2回以内・脱退なし',B:'対応率70%以上・誤認5回以内',C:'対応率40%以上・誤認9回以内',D:'対応率40%未満、または誤認10回以上'}[result.rank]);
+ setText('resultMission',`${VENUES[chosenVenue].name} × ${GROUPS[chosenGroup].name}`);setText('resultCount',state.count);$('resultCount').insertAdjacentHTML('beforeend','<small>人</small>');setText('resultScore',state.score.toLocaleString());setText('resultCombo',state.maxCombo+'連');setText('resultMistakes',`${state.missed} / ${state.mistakes}`);
  setText('resultRare',state.rarePoints?`♥ 繋がりオタク確保：+${state.rarePoints.toLocaleString()}点`:state.rarePenalty?`♥ 見逃し：アイドル1人脱退 / −${state.rarePenalty.toLocaleString()}点`:'♥ 繋がりオタク：未対応');
  $('resultBreakdown').innerHTML=TYPES.map((t,i)=>`<span>${t.short}<b>${state.breakdown[i]}人</b></span>`).join('');setText('resultQuote',state.idolDeparture?'「ひとり欠けたステージ。次は繋がりを見逃すな！」':state.mistakes===0?'「善良なオタクへの誤認ゼロ。アイドルも、オタクもありがとう！」':state.mistakes>3?'「次は、ルールを守っているオタクをよく見極めよう。」':'「今日も、アイドルのステージを守り抜いた！」');
  const prev=bests[bestKey()];const isBest=!prev||state.count>prev.count||(state.count===prev.count&&state.score>prev.score);$('newBest').classList.toggle('hidden',!isBest);if(isBest){bests[bestKey()]={count:state.count,score:state.score};try{localStorage.setItem('nexus-genba-records-v1',JSON.stringify(bests))}catch{}}
@@ -137,6 +155,12 @@ function missConnection(){
  const idol=idolPose();fx(idol.x,idol.y-idol.height-10,'脱退…','#ff7188');
  tone(330,.15,'triangle',.04);tone(220,.3,'triangle',.04,.16);updateHud();
 }
+function missFan(f){
+ if(f.normal||f.status!=='active')return;
+ f.status='gone';state.missed+=f.type===1?2:1;state.combo=0;state.queue=state.queue.filter(id=>id!==f.id);
+ fx(f.x,f.y-50,f.type===5?'乱入を許した！':f.type===6?'繋がりを見逃した…':'見逃し…','#ffa1a1');
+ if(f.type===6)missConnection();else{setText('statusLine',f.type===5?'ステージに上がられた！ 移動中に止めよう。':'対応が遅れた！ 赤いマークを優先しよう。');tone(210,.06,'triangle',.02)}
+}
 function idolPresence(index){
  const departure=mode!=='menu'&&state?.idolDeparture;
  if(!departure||departure.index!==index)return {visible:true,alpha:1,offset:0};
@@ -149,18 +173,14 @@ function update(dt){
  if(mode!=='playing')return;
  state.elapsed+=dt;state.remaining=Math.max(0,60-state.elapsed);music(dt);spawnScheduledFans();
  const rushNow=(state.elapsed>=15&&state.elapsed<21)||(state.elapsed>=32&&state.elapsed<38)||state.elapsed>=50;
- if(rushNow&&!state.rush){state.rush=true;state.spawnClock=.1;announce(state.elapsed>=50?'ラストサビ！ 厄介ラッシュ！':'サビ突入！ 厄介ラッシュ！',2);log('STAGE',GROUPS[chosenGroup].voices[state.rushCycle%3]);state.rushCycle++}else if(!rushNow)state.rush=false;
+ if(rushNow&&!state.rush){state.rush=true;state.spawnClock=.1;announce(state.elapsed>=50?'ラストサビ！ 最後まで守り抜け！':'サビ突入！ 厄介ラッシュ！',2);log('STAGE',GROUPS[chosenGroup].voices[state.rushCycle%3]);state.rushCycle++}else if(!rushNow)state.rush=false;
  state.spawnClock-=dt;
  if(state.spawnClock<=0){const active=state.fans.filter(f=>!f.normal&&f.type!==6&&f.status==='active').length;if(active<VENUES[chosenVenue].max+(state.rush?1:0))spawnFan(false);state.spawnClock=VENUES[chosenVenue].interval*(state.rush?.55:1)*rand(.85,1.15)}
  for(const f of state.fans){
   f.age+=dt;
   if(f.status==='exiting'){f.exit+=dt;f.x+=(f.x<320?-330:330)*dt;if(f.exit>.85)f.status='gone';continue}
   if(!f.normal&&f.type===5){const p=clamp(f.age/f.life,0,1);f.x=f.startX+(f.targetX-f.startX)*p;f.y=f.startY+(f.targetY-f.startY)*p}
-  if(!f.normal&&f.status==='active'&&f.age>=f.life){
-   f.status='gone';const people=f.type===1?2:1;state.missed+=people;state.combo=0;state.queue=state.queue.filter(id=>id!==f.id);
-   fx(f.x,f.y-50,f.type===5?'乱入を許した！':f.type===6?'繋がりを見逃した…':'見逃し…','#ffa1a1');
-   if(f.type===6)missConnection();else{setText('statusLine',f.type===5?'ステージに上がられた！ 移動中に止めよう。':'対応が遅れた！ 赤いマークを優先しよう。');tone(210,.06,'triangle',.02)}
-  }
+  if(!f.normal&&f.status==='active'&&f.age>=f.life)missFan(f);
  }
 
  state.fans=state.fans.filter(f=>f.status!=='gone');
@@ -172,7 +192,8 @@ function update(dt){
  state.hudClock-=dt;if(state.hudClock<=0){updateHud();state.hudClock=.1}if(state.remaining<=0)finish();
 }
 function drawSprite(c,index,x,y,h=82,flip=false,alpha=1,squash=1){
- const sheet=index<2?guards:index>=8?blondFans:portraits,crop=index<2?GUARD_CROPS[index]:index>=8?BLOND_FAN_CROPS[index-8]:CROPS[index];
+ const action=BLACK_ACTION_SPRITES[index];
+ const sheet=action? action.image:index===10?blackShirtFan:index<2?guards:index>=8?blondFans:portraits,crop=action?action.crop:index===10?BLACK_SHIRT_CROP:index<2?GUARD_CROPS[index]:index>=8?BLOND_FAN_CROPS[index-8]:CROPS[index];
  if(!sheet.complete||!sheet.naturalWidth)return;const [sx,sy,sw,sh]=crop;const w=h*sw/sh;c.save();c.globalAlpha=alpha;c.translate(Math.round(x),Math.round(y));if(flip)c.scale(-1,1);c.drawImage(sheet,sx,sy,sw,sh,Math.round(-w/2),-h*squash,w,h*squash);c.restore();
 }
 function pixelText(c,text,x,y,color='#fff',size=18,align='center'){c.font=`bold ${size}px "DotGothic16", monospace`;c.textAlign=align;if(color!=='#0b2012'){c.fillStyle='#06101be6';c.fillText(text,x+2,y+2)}c.fillStyle=color;c.fillText(text,x,y)}
@@ -189,7 +210,7 @@ function drawVenue(c,w,h,time,venueIndex=chosenVenue){
 function moshPose(f,time){const p=((time*1.25+f.phase) % 1+1)%1;let gap;if(p<.38)gap=42-26*p/.38;else if(p<.51)gap=16;else gap=16+26*(p-.51)/.49;return {gap,impact:p>=.38&&p<.55,lean:gap<22?.18:.08}}
 function drawMosh(c,f,x,y,time){
  const pose=moshPose(f,time),gap=f.status==='exiting'?25:pose.gap;
- for(const side of [-1,1]){c.save();c.translate(x+side*gap,y+(reduced?0:Math.abs(Math.sin(time*12))*3));c.rotate(-side*pose.lean);drawSprite(c,side<0?6:4,0,0,80,side>0);c.restore()}
+ for(const side of [-1,1]){c.save();c.translate(x+side*gap,y+(reduced?0:Math.abs(Math.sin(time*12))*3));c.rotate(-side*pose.lean);drawSprite(c,side<0?6:f.sprite,0,0,80,side>0);c.restore()}
  if(f.status==='active'&&pose.impact){
   c.strokeStyle='#ffe7a6';c.lineWidth=3;
   for(let i=0;i<6;i++){const a=i*Math.PI/3;c.beginPath();c.moveTo(x+Math.cos(a)*9,y-39+Math.sin(a)*9);c.lineTo(x+Math.cos(a)*19,y-39+Math.sin(a)*19);c.stroke()}
@@ -212,12 +233,17 @@ function drawFan(c,f,time){
    if(f.type===0){drawSprite(c,6,x,y,64,false,1);y-=40+Math.sin(time*4+f.phase)*3}
 
    if(f.type===2){c.fillStyle='#ffe58c'+(reduced?'28':Math.sin(time*7)>.0?'36':'20');c.beginPath();c.arc(x,y-46,50,0,Math.PI*2);c.fill()}
-   if(f.type===3){const p=(time*1.6+f.phase)%1;const px=x+Math.sin(f.phase)*65*p,py=y-55-p*160;c.save();c.translate(px,py);c.rotate(p*6);c.fillStyle='#9ce6ff';c.fillRect(-3,-14,6,28);c.fillStyle='#fff';c.fillRect(-1,-12,2,23);c.restore()}
+   if(f.type===3){const p=(time*1.6+f.phase)%1;const px=x+(f.sprite===11?32:0)+Math.sin(f.phase)*65*p,py=y-(f.sprite===11?72:55)-p*160;c.save();c.translate(px,py);c.rotate(p*6);c.fillStyle='#9ce6ff';c.fillRect(-3,-14,6,28);c.fillStyle='#fff';c.fillRect(-1,-12,2,23);c.restore()}
    if(f.type===4){c.fillStyle='#b689e766';c.fillRect(x-48,y-10,96,14);c.strokeStyle='#d8acff';c.setLineDash([8,5]);c.strokeRect(x-47,y-24,94,34);c.setLineDash([])}
  }
  if(!normal&&f.type===1)drawMosh(c,f,x,y,time);
  else{if(!normal&&f.type===5){c.strokeStyle='#ffad6699';c.lineWidth=3;c.beginPath();c.moveTo(x-8,y+6);c.lineTo(x-8,y+21);c.moveTo(x+8,y+4);c.lineTo(x+8,y+17);c.stroke()}
- drawSprite(c,f.sprite,x,y,normal?72:84,false,1,reduced?1:1+Math.sin(time*(f.type===5?17:7)+f.phase)*.025)}
+ drawSprite(c,f.sprite,x,y,normal?72:84,!normal&&f.type===5&&f.sprite===13&&f.targetX<f.startX,1,reduced?1:1+Math.sin(time*(f.type===5?17:7)+f.phase)*.025)}
+ if(!normal&&f.sprite===10&&(f.type===2||f.type===3)){
+  // Keep the offense readable when the same additional outfit is reused.
+  c.save();c.translate(x-19,y-57);const sticks=f.type===2?5:1;
+  for(let i=0;i<sticks;i++){c.save();c.rotate((i-(sticks-1)/2)*.3);c.fillStyle=f.type===2?'#ffca41':'#ff80bc';c.fillRect(-3,-23,6,24);c.fillStyle='#fff4ce';c.fillRect(-1,-22,2,19);c.restore()}c.restore();
+ }
  if(!normal&&f.status==='active'){
    const labelY=fanLabel(f).y,labelWidth=fanLabel(f).width;c.fillStyle=queued?'#c5fa5f':f.type===6?'#ffd86e':'#de4164';c.fillRect(x-labelWidth/2,labelY-21,labelWidth,27);pixelText(c,`${f.key} ${t.short}${f.type===1?' ×2':f.type===6?' ♥'+Math.max(0,Math.ceil(f.life-f.age))+'秒':''}`,x,labelY-1,queued||f.type===6?'#0b2012':'#fff',16);
    const rem=1-f.age/f.life;c.fillStyle='#120d19';c.fillRect(x-labelWidth/2,labelY+8,labelWidth,4);c.fillStyle=rem<.3?'#ff6788':t.color;c.fillRect(x-labelWidth/2,labelY+8,labelWidth*rem,4);
@@ -228,7 +254,7 @@ function drawFan(c,f,time){
 function drawGame(){
  if(!state)return;const time=state.anim;ctx.clearRect(0,0,640,720);drawVenue(ctx,640,720,time);
  pixelText(ctx,GROUPS[chosenGroup].name,320,chosenVenue===0?105:chosenVenue===1?133:150,GROUPS[chosenGroup].color,17);
- ctx.fillStyle='#081018bd';ctx.fillRect(0,685,640,35);pixelText(ctx,'EXIT',47,708,'#b9f969',17);pixelText(ctx,state.idolDeparture?'公演続行：残り4人 / 1人脱退':'NEXUS SECURITY',320,708,state.idolDeparture?'#ffadbb':'#c3ced6',13);pixelText(ctx,'EXIT',593,708,'#b9f969',17);
+ ctx.fillStyle='#081018bd';ctx.fillRect(0,685,640,35);pixelText(ctx,'EXIT',47,708,'#b9f969',17);pixelText(ctx,state.idolDeparture?'公演続行：残り4人 / 1人脱退':'IDOL SECURITY',320,708,state.idolDeparture?'#ffadbb':'#c3ced6',13);pixelText(ctx,'EXIT',593,708,'#b9f969',17);
  if(state.queue.length){ctx.strokeStyle='#c5fa5f88';ctx.lineWidth=2;ctx.setLineDash([7,8]);ctx.beginPath();ctx.moveTo(state.guard.x,state.guard.y);state.queue.forEach(id=>{const f=state.fans.find(f=>f.id===id);if(f)ctx.lineTo(f.x,f.y)});ctx.stroke();ctx.setLineDash([])}
  for(const f of state.fans)if(!f.normal&&f.type===6&&f.status==='active')drawConnection(ctx,f,time);
  const sorted=[...state.fans].sort((a,b)=>a.y-b.y);let guardDrawn=false;
@@ -265,7 +291,7 @@ $('helpBtn').onclick=()=>{helpPaused=mode==='playing'||mode==='countdown';if(hel
 $('helpDialog').addEventListener('close',()=>{if(helpPaused&&mode==='paused'){mode=state.previousMode;lastFrame=performance.now();updateHud()}helpPaused=false});
 document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>$(b.dataset.close).close());
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&(mode==='playing'||mode==='countdown'))pause()});
-Promise.all([portraits,venues,guards,blondFans].map(img=>new Promise((resolve,reject)=>{if(img.complete&&img.naturalWidth)resolve();else{img.onload=resolve;img.onerror=reject}}))).then(()=>{assetReady=true}).catch(()=>{assetError=true;$('startBtn').disabled=true;setText('missionBrief','画像を読み込めませんでした。ページを再読み込みしてください。')});
+Promise.all([portraits,venues,guards,blondFans,blackShirtFan,blackShirtThrow,blackShirtMosh,blackShirtInvasion].map(img=>new Promise((resolve,reject)=>{if(img.complete&&img.naturalWidth)resolve();else{img.onload=resolve;img.onerror=reject}}))).then(()=>{assetReady=true}).catch(()=>{assetError=true;$('startBtn').disabled=true;setText('missionBrief','画像を読み込めませんでした。ページを再読み込みしてください。')});
 requestAnimationFrame(frame);
 // Browser-native agent controls share the same state and actions as the visible controls.
 if(document.modelContext?.registerTool){

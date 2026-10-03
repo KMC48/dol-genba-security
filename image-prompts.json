@@ -1,0 +1,38 @@
+{
+  "date": "2026-10-03",
+  "jobs": [
+    {
+      "key": "rank-c",
+      "refs": [
+        "/workspace/scratch/d8f9308ceb0a/rank-scenes-review/rank-c.png",
+        "/workspace/scratch/d8f9308ceb0a/github-v1.3/characters.png"
+      ],
+      "transparent": false,
+      "prompt": "Edit target: image 1, the existing C-rank scene. Supporting character reference: image 2, specifically the adult male fan in the TOP ROW THIRD POSITION wearing a bright pink graphic T-shirt, black rectangular glasses, white neck towel, black backpack, and short messy black hair with pink glowsticks. Replace ONLY the blond white-T-shirt fan on the left of image 1 with that pink-T-shirt, black-haired, glasses-wearing adult glowstick-throwing fan. This is NOT the blond front-row monopolizer. Give the replacement an angrily open mouth, one arm pointing and scolding the two guards, the other hand holding pink glowsticks. Preserve the two half-crying IDOL SECURITY guards, their facial expressions, clothing, exact positions, scene composition, pixel-art style, lighting and background. Correct the large background stage lettering from IDOL FEST to exactly IDOL FES, on two lines IDOL / FES. Keep the heart symbol above it. Cap logos remain exactly IDOL SECURITY; never use NEXUS. Landscape 1536x1024. One coherent scene, no extra captions, no rank letter, no new panels. Clearly visible square pixel clusters and stepped contours. Keep the existing full image intact except the specified fan and the one word."
+    },
+    {
+      "key": "rank-d",
+      "refs": [
+        "/workspace/scratch/d8f9308ceb0a/rank-scenes-review/rank-b.png"
+      ],
+      "transparent": false,
+      "prompt": "Create one D-rank result illustration matching the supplied game's existing pixel-art scene. Reference is for the identities, uniforms and pixel style of the two fictional adult Japanese IDOL SECURITY guards: muscular square-jawed short-goateed man and lean narrower-faced small-goateed man; dark short-sleeved polo shirts, gold eagle shield chest patch, dark trousers, black IDOL SECURITY caps, blue-black sunglasses. In this new scene BOTH security men are kneeling dejectedly on the venue entrance pavement, heads bowed and shoulders slumped, hands resting on knees. Full kneeling poses clearly legible. Mild comedic shame, no injuries. Same blue-magenta idol concert atmosphere, closed metal venue barrier behind them. Across the upper-middle foreground stamp HUGE bright RED Japanese letters exactly 「出禁」 (two characters only, no quote marks) with a bold dark outline, like an arcade failure verdict. Ensure these two characters are perfectly legible and occupy about 45% of image width without covering both faces or hiding that they kneel. No other headline or text except small cap lettering exactly IDOL SECURITY. No NEXUS. Landscape 1536x1024, polished nostalgic Japanese arcade pixel art, square pixels, crisp stepped outlines, limited colors and dithering, no smooth painting, no collage. Compose as a standalone result-game asset, not a UI mockup."
+    },
+    {
+      "key": "security-team",
+      "refs": [
+        "/workspace/scratch/d8f9308ceb0a/github-v1.3/security-team.jpeg"
+      ],
+      "transparent": false,
+      "prompt": "Precise image edit of this pixel-art character design sheet. Preserve its entire 4:3 composition, all panels, character identities, poses, faces, colors, proportions, small sprites, uniforms and original pixel-art treatment. Replace EVERY occurrence of the old name NEXUS with IDOL so that every English logo becomes exactly IDOL SECURITY. This includes both large caps on the left, the logo examples on the right, the small lower logos, the equipment cap, and any readable small uniform/cap text. Change the large bottom-left Japanese team title from NEXUSセキュリティチーム to IDOLセキュリティチーム. Leave all other Japanese wording intact. The brand must be IDOL SECURITY everywhere, never NEXUS. Keep the gold eagle and shield designs. The stage lettering IDOL FEST may be shortened to IDOL FES for consistency. Return one complete 4:3 sheet, ideally 1536x1152, not separate panels; do not move or crop characters, do not add logos or objects, no new accessories. This source is used via proportional CSS crops, so preserve panel positions very closely."
+    },
+    {
+      "key": "black-shirt-fan",
+      "refs": [
+        "/workspace/scratch/d8f9308ceb0a/github-v1.3/characters.png"
+      ],
+      "transparent": true,
+      "prompt": "New game sprite asset, referenced to the existing Japanese arcade pixel-art fan sheet's style. Create ONE fictional young ADULT Japanese male idol-concert troublemaker, full body isolated on a genuinely transparent background. He is NOT blond: short jagged messy black hair with shaved sides, cocky raised chin and smug eyebrows, small silver ear stud and simple silver chain. Black oversized short-sleeve T-shirt with absolutely NO logo or lettering, dark charcoal loose trousers, black and white sneakers. Athletic slim build, lively confrontational stance, feet apart, elbows bent, hands lifted near chest, palms/fists fully visible and not touching body. Hands are empty so game code can draw glowsticks for different offenses. This base sprite will be reused for lifting, mosh collisions, excessive glowsticks, throwing glowsticks and stage invasion; make the pose versatile and dynamic. Match the existing sheet's slightly chibi 4-head-tall game proportion, crisp chunky square pixels, stepped dark outline, limited palette; no realistic illustration or soft antialiased edges. Center a SINGLE character, generous transparent margin, entire hair and shoes inside frame. No background, ground, aura, glow, checkerboard pattern, typography, labels or additional characters. Transparent alpha is required."
+    }
+  ]
+}

@@ -7,14 +7,16 @@
 | index.html | 選択、HUD、ヘルプ、一時停止、結果 |
 | style.css | レスポンシブUIと原画トップ |
 | game.js | 状態、出現、移動、採点、Canvas/Web Audio |
-| 画像5点 | ファン・アイドル、会場、警備員原画、警備員スプライト、金髪ファン |
+| 画像14点 | 既存5点（キー原画更新）＋黒Tファン4ポーズ＋結果5ランク |
 | build.mjs / serve.mjs | Web出力/開発サーバー |
 | test-game.cjs | Node VMでの回帰テスト |
 | capacitor.config.json | ネイティブ化ひな形 |
 
 Vanilla JavaScript ES Modules、Canvas 2D、dialog、Pointer Events。バックエンド、課金、広告、アカウント、オンラインランキングなし。
 状態遷移はmenu→countdown→playing→result。paused経由で再開。document.visibilitychangeでも停止。
-resetGameが初期化、spawnFan/spawnScheduledFansが出現、chooseFanがキュー、updateが時間と移動、ejectが採点、drawGame/drawFan/drawMosh/drawConnectionが描画。
+resetGameが初期化、spawnFan/spawnScheduledFansが出現、chooseFanがキュー、updateが時間と移動、ejectが採点、missFanが見逃しの共通集計、evaluateRankがS〜D判定、drawGame/drawFan/drawMosh/drawConnectionが描画。
 localStorageのnexus-genba-records-v1へ会場-グループ別の人数とスコアを保存。同人数ならスコア比較。保存失敗でもプレイ継続。
 フォントはGoogle FontsのDotGothic16/Noto Sans JPをCSSから外部取得。ネットなしでも代替字体で動く。ネイティブ版はライセンス付き同梱を推奨。
 音源はWeb Audio合成、初期OFF。対応ブラウザに限りWebMCPの状態取得/現場選択を登録するが必須ではない。
+
+旧保存キーnexus-genba-records-v1は既存記録維持のため内部互換用として継続。画面や画像内の名称はIDOL SECURITYに統一。

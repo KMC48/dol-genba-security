@@ -1,0 +1,18 @@
+{
+  "method": "built-in image generation; transparent alpha; reference black-shirt-fan.png",
+  "invariants": "Center-part black hair, no necklace, black T-shirt with white sheep head, original fictional adult character",
+  "jobs": [
+    {
+      "name": "black-shirt-throw",
+      "action": "Glowstick-throwing version: 3/4 front view, wide planted stance, torso twisted in an overarm throwing follow-through, throwing arm extended diagonally upward just after releasing a pink glowstick. Other hand holds one cyan glowstick. NO detached/flying objects in this asset because the game animates the thrown glowstick separately. Clearly throwing rather than merely cheering."
+    },
+    {
+      "name": "black-shirt-mosh",
+      "action": "Mosh body-collision version: 3/4 view oriented toward image RIGHT, lean torso and shoulder strongly forward toward the right to bump another fan, knees bent and feet planted, elbows tucked close and forearms braced defensively across lower torso (do not cover sheep emblem). Aggressive energetic shoulder-bump pose, NOT punching, NOT jumping. Do not draw the other participant: the game supplies and animates them."
+    },
+    {
+      "name": "black-shirt-invasion",
+      "action": "Stage-invasion running version: dynamic running stride, one knee lifted forward and other leg extended back, opposing bent arms pumping, torso leaning forward, 3/4 view toward image RIGHT with chest visible so sheep emblem is readable. Excited determined expression. Hands empty, no glowsticks. Both legs and shoes fully visible. The game animates actual movement toward the stage."
+    }
+  ]
+}

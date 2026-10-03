@@ -1,7 +1,16 @@
 {
+  "black-shirt-fan.png": "45884a36c55ac1fe7d9e3c18df5e10fd0fd04f79f3604b5d98190fb52e446ad2",
+  "black-shirt-invasion.png": "4a55ba0245a2f701a35fc6a94eb2bd5d66c7aba6243773c9fdc1c507e41fda8d",
+  "black-shirt-mosh.png": "7d559e6e4dd2b209743fafdbf12795a7fc3728c056892c88418171bcc0caee05",
+  "black-shirt-throw.png": "82784a3af4c769660a39f11aca64d844eac5e97fae3f92428fc4c0025a40ee4b",
+  "blond-fans.png": "4846b568131fc365c63e991493b68611a70e4a4ae6058c410d4d3717af24a275",
   "characters.png": "bdefc2c4b77a4790d9ac324822df26b8a211779077a1679ea215ef46f266b21e",
-  "venues.png": "2a4d8c5e4aa49fec1912d3af84cdef73a82b395aed5d43774863f14ad6d93ce1",
-  "security-team.jpeg": "87c1de72f4a92f66e14c4854e95731cd33f2d0efb0777586ef0ead6efdbd0e90",
+  "rank-a.png": "d4109153dff03c12461cad99ba0d80186106afa9c6bb3d6ab84002a78484a2ff",
+  "rank-b.png": "8ee3998da960e8b6a8ca62abee58334cf1a242392b593240012235e7695c31f4",
+  "rank-c.png": "975605903cf76e52d1d66c567eb86864f01eaf8ce57647c6be3f863de5f4fdf7",
+  "rank-d.png": "157e5582279d890cab19e1366dcb19bbaae017e8858be7da16f3b5d9ece8d7e7",
+  "rank-s.png": "963f13d065400c75fbd516b28f58053b83a3774d2b766a5c8cb6c9d36a9ada4e",
   "security-sprites.png": "18bb86993d45723b509bd0b605e6e98af002c31f9315f86d37ec129fc03eca37",
-  "blond-fans.png": "4846b568131fc365c63e991493b68611a70e4a4ae6058c410d4d3717af24a275"
+  "security-team.png": "b6273ea218dde53f4eb18d45da94dc9f345c4f0a41c90b922e5b33b8016bf3b9",
+  "venues.png": "2a4d8c5e4aa49fec1912d3af84cdef73a82b395aed5d43774863f14ad6d93ce1"
 }

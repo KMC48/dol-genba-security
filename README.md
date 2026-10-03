@@ -1,8 +1,12 @@
-# ドル現場防衛戦 — NEXUS SECURITY
+# ドル現場防衛戦 — IDOL SECURITY
 
-KMC Creative Lab / Web版 v1.3 / 2026-10-03
+KMC Creative Lab / Web版 v1.4 / 2026-10-03
 
-アイドルライブの現場を守る60秒のドット絵アクションゲーム。4会場×4グループ、7種の警戒対象、コンボと一斉退場。元画像を使う警備員トップ画面を収録。
+アイドルライブの現場を守る60秒のドット絵アクションゲーム。4会場×4グループ、7種の警戒対象、コンボと一斉退場。IDOL SECURITYへ更新したキービジュアル、5段階の結果画像、追加の黒Tシャツキャラを収録。
+
+公開URL: https://kmc48.github.io/dol-genba-security/
+
+Claude Codeへの引き継ぎは [START_HERE.md](START_HERE.md) から。ネイティブ化を依頼する文面は [HANDOFF_PROMPT.md](HANDOFF_PROMPT.md)。
 
 ## 起動
 Node.js 22以上で `npm run dev`。表示されたURLをブラウザで開く。Web起動・テスト・ビルドにはnpm install不要。
@@ -21,5 +25,5 @@ Node.js 22以上で `npm run dev`。表示されたURLをブラウザで開く�
 6. ASSETS.md / asset-manifest.json — 素材・出所・ハッシュ
 7. HANDOFF_PROMPT.md — Claude Codeへ渡す依頼文
 
-GitHub Pagesはmainブランチのルートを公開。相対URLを使用。ネイティブフォルダ、APK/AAB/IPA、署名、ストア提出はまだ未実施。
+既存GitHub Pagesはmainブランチのルートを公開。更新時はRELEASE_CHECKLIST.mdを参照。相対URLを使用。ネイティブフォルダ、APK/AAB/IPA、署名、ストア提出はまだ未実施。
 公開は第三者への再利用許諾を意味しない。本リポジトリにオープンソースライセンスは付与していない。

@@ -11,9 +11,9 @@ const els={};const getEl=id=>els[id]??=new El(id);getEl('game').getContext=()=>c
 const registry={};const storage={};
 const context={console,Math,Number,JSON,Error,Promise,AbortController,performance:{now:()=>0},Image:function(){return images.shift()},document:{getElementById:getEl,querySelectorAll:()=>[],addEventListener(){},body:new El('body'),modelContext:{registerTool(t){registry[t.name]=t}}},window:{matchMedia:()=>({matches:false}),scrollTo(){},addEventListener(){}},localStorage:{getItem:k=>storage[k]??null,setItem:(k,v)=>storage[k]=v},requestAnimationFrame(){}};
 (async()=>{
-for(const p of ['characters.png','venues.png','security-sprites.png','blond-fans.png']){const im=await loadImage(base+p);Object.defineProperty(im,'src',{set(){}});images.push(im)}
+for(const p of ['characters.png','venues.png','security-sprites.png','blond-fans.png','black-shirt-fan.png','black-shirt-throw.png','black-shirt-mosh.png','black-shirt-invasion.png']){const im=await loadImage(base+p);Object.defineProperty(im,'src',{set(){}});images.push(im)}
 vm.createContext(context);
-vm.runInContext(fs.readFileSync(base+'game.js','utf8')+'\nglobalThis.test={startGame,resetGame,beginPlay,update,chooseFan,eject,special,pause,resume,goMenu,spawnFan,drawGame,drawPreview,moshPose,spawnScheduledFans,frontRowY,stageY,idolPose,idolPresence,missConnection,finish,getState:()=>state,getMode:()=>mode,setConfig:(v,g)=>{chosenVenue=v;chosenGroup=g},setReady:()=>assetReady=true,venues:VENUES,groups:GROUPS};',context);
+vm.runInContext(fs.readFileSync(base+'game.js','utf8')+'\nglobalThis.test={startGame,resetGame,beginPlay,update,chooseFan,eject,special,pause,resume,goMenu,spawnFan,drawGame,drawPreview,moshPose,spawnScheduledFans,frontRowY,stageY,idolPose,idolPresence,missConnection,missFan,evaluateRank,finish,getState:()=>state,getMode:()=>mode,setConfig:(v,g)=>{chosenVenue=v;chosenGroup=g},setReady:()=>assetReady=true,venues:VENUES,groups:GROUPS};',context);
 
 const t=context.test;t.setReady();
 assert.equal(Object.keys(registry).length,2);
@@ -32,7 +32,7 @@ const runs=[];
 for(let venue=0;venue<4;venue++){for(let group=0;group<4;group++){
  t.setConfig(venue,group);t.resetGame();t.beginPlay();s=t.getState();let maxLive=0;const rareIds=new Set();
  for(let i=0;i<1220&&t.getMode()==='playing';i++){for(const f of s.fans)if(!f.normal&&f.status==='active')t.chooseFan(f);if(s.charge>=100)t.special();t.update(.05);s.fans.filter(f=>!f.normal&&f.type===6).forEach(f=>rareIds.add(f.id));maxLive=Math.max(maxLive,s.fans.filter(f=>!f.normal&&f.status==='active').length)}
- assert.equal(t.getMode(),'result');assert.equal(rareIds.size,1,'exactly one rare per mission');assert.equal(s.breakdown[6],1);assert(s.rarePoints>=1000&&s.rarePoints<=3000);assert(s.breakdown[5]>0);assert(s.count>25);assert.equal(s.mistakes,0);assert.equal(s.breakdown.reduce((a,b)=>a+b,0),s.count);assert(s.queue.length===0);runs.push({venue,group,ejected:s.count,score:s.score,missed:s.missed,maxLive});t.goMenu();
+ assert.equal(t.getMode(),'result');assert.equal(rareIds.size,1,'exactly one rare per mission');assert.equal(s.breakdown[6],1);assert(s.rarePoints>=1000&&s.rarePoints<=3000);assert(s.breakdown[5]>0);assert(s.count>25);assert.equal(s.mistakes,0);assert.equal(s.missed,0);assert.equal(s.rank,'S','perfect play can earn S in all 16 missions');assert.equal(s.breakdown.reduce((a,b)=>a+b,0),s.count);assert(s.queue.length===0);runs.push({venue,group,ejected:s.count,score:s.score,missed:s.missed,maxLive});t.goMenu();
 }}
 // Targeted regression checks for collision, moving invaders and once-only rare lifecycle.
 t.setConfig(0,0);t.resetGame();t.beginPlay();s=t.getState();s.fans=[];s.spawnClock=100;
@@ -70,6 +70,41 @@ for(let v=0;v<4;v++){
  const pose=t.idolPose(v);assert.equal(pose.y,t.stageY(v));assert(pose.height>43);assert(pose.y<t.frontRowY(v)-84,'idols remain on stage above the audience');
 }
 t.setConfig(0,0);t.resetGame();t.beginPlay();s=t.getState();
+// Rank boundary cases and result-image mapping, independent of venue spawn volume.
+const rankCases=[
+ [1,0,0,false,'S'],[89,1,0,false,'A'],[90,10,2,false,'A'],[89,11,0,false,'B'],
+ [90,10,3,false,'B'],[100,0,1,false,'A'],[90,10,0,true,'B'],
+ [70,30,5,false,'B'],[69,31,0,false,'C'],[80,20,6,false,'C'],
+ [40,60,9,false,'C'],[39,61,0,false,'D'],[100,0,10,false,'D'],[0,0,0,false,'D']
+];
+for(const [count,missed,mistakes,idolDeparture,rank] of rankCases){
+ assert.equal(t.evaluateRank({count,missed,mistakes,idolDeparture}).rank,rank);
+ t.resetGame();t.beginPlay();s=t.getState();Object.assign(s,{fans:[],count,missed,mistakes,idolDeparture});t.finish();
+ assert.equal(getEl('rank').textContent,rank);assert.equal(getEl('resultImage').src,`rank-${rank.toLowerCase()}.png`);assert(getEl('resultImage').alt.length>0);
+}
+// Final unresolved targets count as misses, including two mosh participants and the rare penalty.
+t.resetGame();t.beginPlay();s=t.getState();s.fans=[];s.count=100;
+t.spawnFan(false,1);t.spawnFan(false,6);t.finish();assert.equal(s.missed,3);assert.equal(s.rarePenalty,1000);assert.equal(s.rank,'B');
+t.finish();assert.equal(s.missed,3);assert.equal(s.rarePenalty,1000,'finish is idempotent');
+// No target is spawned without its full response window; the exact boundary remains playable.
+for(let v=0;v<4;v++){
+ t.setConfig(v,0);t.resetGame();t.beginPlay();s=t.getState();s.fans=[];
+ for(const type of [0,1,2,3,4,5,6]){
+  s.rareSpawned=false;const life=type===6?4:type===5?7:t.venues[v].life;
+  s.remaining=life+.49;assert.equal(t.spawnFan(false,type),null);
+  s.remaining=life+.5;const f=t.spawnFan(false,type);assert(f);assert.equal(f.life,life);s.fans=[];
+ }
+}
+// Additional black T-shirt appearance coexists with every eligible original; blond roles and good fans stay distinct.
+t.setConfig(0,0);t.resetGame();t.beginPlay();s=t.getState();
+for(const type of [0,1,2,3,4,5,6]){
+ const appearances=new Set();
+ for(let i=0;i<120;i++){s.fans=[];s.rareSpawned=false;appearances.add(t.spawnFan(false,type).sprite)}
+ if(type===4||type===6){assert.equal(appearances.size,1);assert(appearances.has(type===4?8:9))}
+ else {assert(appearances.has(({1:12,3:11,5:13}[type]??10)));assert.equal(appearances.size,2,'original and new fan both remain')}
+}
+s.fans=[];for(let i=0;i<8;i++){const f=t.spawnFan(true);assert(f.sprite===2||f.sprite===3)}
+t.resetGame();t.beginPlay();s=t.getState();
 // Render actual gameplay code at contact and approach phases.
 s.fans=[];s.spawnClock=100;const mm=t.spawnFan(false,1);mm.x=170;mm.y=475;mm.phase=0;const rr=t.spawnFan(false,6);const vv=t.spawnFan(false,5);vv.x=490;vv.y=345;
 s.anim=.35;t.drawGame();
