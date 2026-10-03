@@ -79,7 +79,7 @@ function spawnFan(normal=false,type=null){
  if(!pool.length&&!rare)return null;
  const pos=rare?{slot:16,x:320,y:frontRowY()+56}:pool[Math.floor(rand(0,pool.length))];
  const used=state.fans.filter(f=>!f.normal&&f.status==='active').map(f=>f.key);let key=1;while(used.includes(key))key++;
- const sprite=normal?(Math.random()<.5?2:3):which!==4&&which!==6&&Math.random()<.5?({1:12,3:11,5:13}[which]??10):TYPES[which].sprite;
+ const sprite=normal?(Math.random()<.5?2:3):which!==4&&which!==6&&Math.random()<.35?({1:12,3:11,5:13}[which]??10):TYPES[which].sprite;
  const fan={...pos,x:pos.x+(rare?0:rand(-9,9)),y:pos.y+(rare?0:rand(-3,3)),id:state.nextId++,key:normal||rare?0:key,normal,type:which,sprite,age:0,life,phase:rand(0,Math.PI*2),status:'active',exit:0};
  if(!normal&&which===5){fan.startX=fan.x;fan.startY=fan.y;fan.targetX=640*(.29+Math.floor(rand(0,5))*.105);fan.targetY=stageY()+3}
  if(rare)state.rareSpawned=true;

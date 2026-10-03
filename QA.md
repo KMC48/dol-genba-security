@@ -1,5 +1,7 @@
 # v1.4 公開確認 / 2026-10-03
 
+- 追加指定により黒Tシャツ抽選を35%（既存65%）に変更。対象5行為、最前/繋がりの除外は維持。
+
 - GitHub mainへv1.4を反映。リリースコミット: 12350e819a81f97baee8f93a0881381b466dd2a2。
 - GitHub Pages workflow #5成功。公開URL: https://kmc48.github.io/dol-genba-security/
 - 公開ブラウザでVER. 1.4、IDOL SECURITY、警備開始、羊マークの黒Tシャツ投げキャラと既存キャラの同時表示を確認。
