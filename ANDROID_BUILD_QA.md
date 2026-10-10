@@ -15,15 +15,35 @@
 | `npx cap add android` | 成功。Capacitor 8.5.3のAndroidプロジェクトを生成 |
 | `npm run sync:android` | 成功。Web18ファイルを同梱元へコピー |
 | `npm run verify:android` | 成功。18ファイルのSHA-256、appId、versionName、設定を照合 |
-| ゲームソースと画像 | 基準mainから変更なし |
+| ゲームソースと画像 | HTML/CSS/JS/build.mjsとルート画像14点のバイト一致を確認 |
+| 同梱チェックの異常検出 | コピー側game.jsのみ変えた際にエラーで停止することを確認し、コピーを復元 |
+| Git登録対象 | 署名鍵、証明書、APK、AAB、local.propertiesが登録されていないことを確認 |
 | ローカルAPK生成 | 未実施。JDK 21未導入。JDK取得とGradle checksum取得の転送先接続が自動承認チェックで拒否されたため、別URLで迂回していない |
 | Android実機/エミュレータ | 未実施 |
 | iOS生成/ビルド | 未実施 |
 
 ## GitHub Actions
 
-`Android debug APK` workflowを追加。PR作成後の実行結果をここに追記する。
+`Android debug APK` workflowを追加したが、実行は未実施。
+
+- 通常のgit push: HTTPS認証情報がなく失敗。
+- 接続済みGitHub経由での作業ブランチ作成: `403 Resource not accessible by integration`。
+- このためリモート作業ブランチ・PRは作成できず、GitHub Actionsも実行されていない。ローカルの `codex/android-build-foundation` にコミット済み。
+- 権限がある環境から変更を適用してpush/PR作成するか、リポジトリへの書き込み権限を持つ接続が必要。
+- ローカルにはAndroid SDK 36 / Build Tools 35.0.0を配置できたが、JDK 21未導入のためAPKビルドは未実施。
 CIではビルド環境に用意されたJDK 21を使用する。APK生成/Android lintと、実機QAは別判定。
+
+## ブラウザ補助検証（Android実機の代替ではない）
+
+Android同梱元 `android/app/src/main/assets/public` をローカルHTTP配信し、Chromium headless / タッチエミュレーションで確認。
+幅360・390・412 CSS px、各高さ844pxで以下を確認した。
+
+- 会場/グループ選択、警備開始、Canvasタップに対する得点変化、ポーズ/再開/現場選択への復帰: 全幅で成功。
+- ポーズ中500msの表示時間停止、メニューで横方向のはみ出しなし、JavaScript例外なし。
+- 音ONでAudioContextがrunning、OFFでsuspendedに遷移。実際の可聴音は未確認。
+- 360pxのプレイ画面、412pxのメニュー画面のスクリーンショットを目視確認。残り4枚も引き継ぎZIPに収録。
+- 外部リクエストを遮断して実施。Google Fonts取得リクエストが残ることを確認（代替フォントで動作）。これはフォント修正の完了を意味しない。
+- ブラウザの「現場選択に戻る」とAndroid OSの戻る操作は別。OS戻る、WebView、ノッチ、回転、バックグラウンド音声は未検証。
 
 ## 実機確認表（すべて未実施）
 

@@ -14,7 +14,7 @@ Node.js 22以上で `npm run dev`。表示されたURLをブラウザで開く�
 - `npm run check`: 構文確認
 - `npm test`: ゲームロジック回帰テスト
 - `npm run build`: ネイティブ組み込み用www/を生成
-- ネイティブ依存の導入は `npm install`。以降はBUILD_ANDROID_IOS.mdを参照。
+- ネイティブ依存の導入は `npm ci`。`npm run build:android:debug` で同期・照合・デバッグビルド。BUILD_ANDROID_IOS.mdを参照。
 
 ## 引き継ぎ資料
 1. CLAUDE.md — Claude Codeの開始点
@@ -25,7 +25,7 @@ Node.js 22以上で `npm run dev`。表示されたURLをブラウザで開く�
 6. ASSETS.md / asset-manifest.json — 素材・出所・ハッシュ
 7. HANDOFF_PROMPT.md — Claude Codeへ渡す依頼文
 
-既存GitHub Pagesはmainブランチのルートを公開。更新時はRELEASE_CHECKLIST.mdを参照。相対URLを使用。ネイティブフォルダ、APK/AAB/IPA、署名、ストア提出はまだ未実施。
+既存GitHub Pagesはmainブランチのルートを公開。更新時はRELEASE_CHECKLIST.mdを参照。相対URLを使用。Androidプロジェクトとlockfileは生成済み。APK/AAB/IPA、実機QA、署名、ストア提出は未実施。現在の結果はANDROID_BUILD_QA.mdを参照。
 公開は第三者への再利用許諾を意味しない。本リポジトリにオープンソースライセンスは付与していない。
 
 ## 音が出ない場合
