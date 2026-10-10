@@ -12,8 +12,8 @@
 
 ## 作業開始
 `npm test`、`npm run build`を実行しWeb版を保つ。正となるソースはルートのHTML/CSS/JSと画像14点。www/は生成物で直接編集しない。
-Capacitor 8系の設定はひな形。appIdは仮値なのでネイティブ生成/ストア登録前に所有者へ確認。プラットフォームフォルダ未生成。
-ネイティブ作業でnpm installを行い、生成したpackage-lock.jsonをコミットする。以降npm ci。同じCapacitorメジャーに揃える。
+Capacitor 8.5.3でAndroidプロジェクト生成済み。appIdは依頼に基づき仮値で開発用生成しており、ストア登録・配信前に所有者が確定する。iOSは未生成。BUILD_ANDROID_IOS.mdとANDROID_BUILD_QA.mdを参照。
+package-lock.jsonをコミット済み。初回からnpm ci。Capacitor更新は4パッケージを同一バージョンに揃える。
 APIキー、トークン、署名鍵、keystore、証明書、プロビジョニングをGitへ入れない。
 広告・課金・分析SDK・ユーザー登録は依頼なしに追加しない。全面的なエンジン移行をしない。
 

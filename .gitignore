@@ -11,3 +11,13 @@ android/local.properties
 android/.gradle/
 android/**/build/
 ios/**/build/
+
+# Local signing material and build outputs
+*.apk
+*.aab
+*.ipa
+*.key
+*.pem
+key.properties
+keystore.properties
+android/.idea/

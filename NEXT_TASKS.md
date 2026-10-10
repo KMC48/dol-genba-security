@@ -2,7 +2,7 @@
 
 Web v1.4を基準にAndroid/iOSへ進む。以後のWeb更新手順はRELEASE_CHECKLIST.md。
 
-P0: 環境確認→appId確定→npm install/lockfile固定→Android生成/デバッグAPK→macOSでiOS生成/実機。
+P0: 依存関係/lockfile固定とAndroid生成・Web同梱は完了（ANDROID_BUILD_QA.md参照）。次はデバッグAPKのビルド結果確認→Android実機QA→appId所有者確定→署名AAB。macOSでiOS生成/実機も未実施。
 ネイティブライフサイクル、戻るボタン、音声、safe-areaを補強し、QA.mdを更新する。
 
 P1: アプリアイコン/スプラッシュ/ストア画像、ライセンス付きローカルフォント、実時間時計、新ランクの人間による難度確認。素材権利と名称、プライバシー/データ申告、署名、内部テスト、所有者レビュー、ストア提出。

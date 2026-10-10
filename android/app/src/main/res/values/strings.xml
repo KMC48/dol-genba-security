@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">ドル現場防衛戦</string>
+    <string name="title_activity_main">ドル現場防衛戦</string>
+    <string name="package_name">jp.kmccreativelab.dolgenba</string>
+    <string name="custom_url_scheme">jp.kmccreativelab.dolgenba</string>
+</resources>
