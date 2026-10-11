@@ -1,3 +1,15 @@
+# スマホのセーフエリア対応（案A）/ 2026-10-11
+
+ブランチ `web/mobile-safe-area`（`ios/project` から分岐）。`style.css` 末尾にのみ追加。ゲームロジック・Canvasサイズ・画像は変更なし。
+
+- ヘッダーに `env(safe-area-inset-top)` の余白、フッターとプレイ画面下端に `env(safe-area-inset-bottom)` の余白を追加。
+- 幅760px以下のプレイ中は、制圧ゲージ／一斉退場ボタンを画面下端（ホームバーの上）に配置。Canvasの大きさは従来どおり。
+- PCブラウザ等セーフエリアのない環境では env() が0になり、従来と同じ表示。
+- `npm run check` / `npm test`（16ミッション PASS）/ `npm run sync:ios` / Simulator向け xcodebuild 成功。
+- iPhone 17 Simulator: タイトル・プレイ画面でヘッダーがDynamic Islandと重ならないこと、ゲージ／ボタンが下端にあること、違反者タップで退場1人・100点になることを確認。
+- 既知: メニューを下へスクロールすると、本文がステータスバーの下を通る（WebViewの通常動作）。
+- 未実施: 横向き、iPhone SE等の小型端末、実機、PCブラウザでの目視確認。
+
 # iOSプロジェクト生成 / 2026-10-11
 
 環境: macOS 26.5.2 / Xcode 26.5 (17F42) / iOS Simulator 26.5（iPhone 17）/ Node.js 26.8.1 / Capacitor 8.5.3。ブランチ `ios/project`。
