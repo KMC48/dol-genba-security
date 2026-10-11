@@ -41,3 +41,14 @@
 .result-image{display:block;width:100%;height:auto;max-height:29dvh;object-fit:contain;background:#0a1322;border:1px solid #334559;border-radius:6px;margin:4px 0 14px;image-rendering:pixelated}
 .rank-assessment{display:flex;flex-direction:column;gap:5px;text-align:center;margin:0 0 16px;font-size:12px;line-height:1.6;color:#b7c7d7}.rank-assessment b{font-size:15px;color:#edf7ff}
 #resultDialog[data-rank="D"] .rank{color:#ff526b}#resultDialog[data-rank="C"] .rank{color:#f0ab73}.rank-manual{font-size:13px;line-height:1.9;color:#b7c7d7}
+
+/* Native/phone: keep the header clear of the notch/Dynamic Island and pin the play controls above the home indicator. */
+.topbar{padding-top:env(safe-area-inset-top);height:calc(88px + env(safe-area-inset-top))}
+footer{padding-bottom:calc(19px + env(safe-area-inset-bottom))}
+@media(max-width:760px){
+ .topbar{height:calc(65px + env(safe-area-inset-top))}
+ body.playing .topbar{height:calc(48px + env(safe-area-inset-top))}
+ body.playing .play-screen{display:flex;flex-direction:column;min-height:calc(100dvh - 48px - env(safe-area-inset-top));padding-bottom:calc(14px + env(safe-area-inset-bottom))}
+ body.playing .play-layout,body.playing .game-column{display:flex;flex-direction:column;flex:1;width:100%}
+ body.playing .action-deck{margin-top:auto;border-top:1px solid #34414c}
+}
