@@ -7,12 +7,26 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%23c5fa5f' d='M4 3h24v18L16 30 4 21z'/%3E%3Cpath fill='%230b1016' d='M10 8h12v4h-4v8h4v4H10v-4h4v-8h-4z'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="on-title">
 <div class="app">
 <header class="topbar"><a class="brand" href="./" aria-label="タイトルへ"><span class="shield">I</span><span>IDOL <b>SECURITY</b></span></a><div class="header-right"><span class="edition">FIELD OPERATIONS / 01</span><button id="soundBtn" class="icon-button" aria-label="サウンドをオンにする" title="サウンド">音 OFF</button><button id="helpBtn" class="icon-button" aria-label="遊び方">?</button></div></header>
 <main>
-<section id="menu" class="menu-screen">
-<div class="intro-grid">
+<section id="title" class="title-screen" aria-label="タイトル">
+<div class="title-frame">
+<p class="title-kicker">IDOL LIVE SECURITY ACTION</p>
+<h1 class="title-logo">ドル現場<span>防衛戦</span></h1>
+<p class="title-sub">IDOL SECURITY</p>
+<div class="title-art"><img src="security-team.png" alt="半袖ポロシャツ姿のIDOL SECURITYの警備員2人" decoding="async"></div>
+<div class="title-menu" role="group" aria-label="スタート">
+<button id="titleSound" class="title-choice selected"><span class="title-cursor" aria-hidden="true">▶</span>音ありで はじめる</button>
+<button id="titleMute" class="title-choice"><span class="title-cursor" aria-hidden="true">▶</span>音なしで はじめる</button>
+</div>
+<p id="titleBest" class="title-best"></p>
+<p class="title-copy">© KMC Creative Lab　VER. 1.4</p>
+</div>
+</section>
+<section id="menu" class="menu-screen hidden">
+<div class="intro-grid hidden">
 <div class="intro-copy"><p class="eyebrow"><span class="tiny-bar"></span> IDOL LIVE SECURITY ACTION</p><h1>ドル現場<span>防衛戦<span class="title-dot">.</span></span></h1><p class="tagline">アイドルの現場を、守り抜け。</p><div class="intro-stats"><span><b>60</b> 秒の現場勝負</span><span><b>07</b> 種の警戒対象</span></div></div>
 <div class="scene-preview guard-keyvisual"><div class="guard-art"><img src="security-team.png" alt="半袖ポロシャツ姿のIDOL SECURITYの警備員2人。左はがっしりした隊員、右は細身の隊員" fetchpriority="high" decoding="async"></div><canvas id="preview" width="640" height="430" hidden aria-hidden="true"></canvas><div class="scene-tag"><span class="live-square"></span><span id="sceneName">下北・地下ライブハウス</span></div><div class="scene-caption"><span>IDOL SECURITY / HAYATO &amp; DAICHI</span><b>現場で厄介、絶対許さない。</b></div></div>
 </div>
