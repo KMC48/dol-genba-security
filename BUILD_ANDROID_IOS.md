@@ -86,6 +86,7 @@ npm run open:ios
 ```
 
 `cap add ios` は初回のみ。Capacitor 8はSwift Package Managerが標準。
+アプリアイコンは `assets/icon.png`（1024×1024・透過なし）を `ios/App/App/Assets.xcassets/AppIcon.appiconset` に登録する。
 所有者がTeam/Bundle Identifier/Version/Buildを設定し、Simulator → 実機 → Archive → TestFlightへ進む。
 証明書・プロビジョニング・署名鍵・パスワードをGitへ登録しない。
 
@@ -94,7 +95,7 @@ npm run open:ios
 - Android実機QA（起動、表示、タッチ、可聴音、戻る操作、端末サイズ、バックグラウンド復帰）
 - 戻る操作を一時停止/画面遷移とどう連動させるか。現状はCapacitor標準動作で、ゲーム専用処理は追加していない
 - 時計/ローカルフォント修正の統合、オフライン確認
-- 仮のCapacitorアイコン/スプラッシュを製品素材へ置換
+- ~~仮のCapacitorアイコン/スプラッシュを製品素材へ置換~~ Androidは2026-10-11に置換済み（原画は `assets/icon.png`）。iOSは生成後にXcodeのAppIconへ登録する
 - バックアップ設定（生成時のallowBackup=true）と端末内保存の説明・実挙動の整合、INTERNET権限、データ申告の確認
 - appId、versionCode、素材権利・名称・プライバシーポリシー・年齢区分の所有者確認
 - Android署名付きAAB、内部テスト、ストア提出

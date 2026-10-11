@@ -22,6 +22,20 @@
 | Android実機/エミュレータ | 未実施 |
 | iOS生成/ビルド | 未実施 |
 
+## Windowsでのビルド（2026-10-11 JST）
+
+環境: Windows 11、Node 24.18.0、npm 11.16.0、JDK 21.0.12（Temurin）、Android SDK Platform 36 / Build Tools 35.0.0・36.0.0。作業パスは `C:\dev\dol-genba-security`（OneDrive・日本語パス外）。
+
+| 検証 | 結果 |
+| --- | --- |
+| `npm ci` / `npm run check` / `npm test` | 成功 |
+| `npm run build:android:debug` | 成功。同梱照合PASS、`:app:assembleDebug` 成功 |
+| `:app:lintDebug` | 成功 |
+| APKの内容（aapt2 dump badging） | package `jp.kmccreativelab.dolgenba`、versionCode 1、versionName 1.4.0、minSdk 24、targetSdk 36、ラベル「ドル現場防衛戦」 |
+| 修正 | `scripts/gradle.mjs` がWindowsで `gradlew.bat` を見つけられず失敗（`NoDefaultCurrentDirectoryInExePath` 設定時）。絶対パスで呼び出すよう修正 |
+| アイコン/スプラッシュ | 採用アイコンを `assets/icon.png` に保存し、ランチャーアイコン（通常・丸・アダプティブ前景）とスプラッシュを生成して置換 |
+| Android実機/エミュレータ | 未実施（接続端末なし） |
+
 ## GitHub Actions
 
 `Android debug APK` workflowを追加したが、実行は未実施。
