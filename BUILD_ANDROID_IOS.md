@@ -5,7 +5,7 @@
 Web v1.4のmain `821579264e74eeafb8865431aa98f8b2d61f0543` を基準に、Capacitor 8.5.3の依存関係とpackage-lock.jsonを固定し、Androidプロジェクトを生成済み。
 ゲームのルール・ステージ・スコア計算・画像は変更していない。
 検証結果は [ANDROID_BUILD_QA.md](ANDROID_BUILD_QA.md)。APKビルド成功と実機QA完了は別の判定。
-iOSプロジェクト、署名AAB/IPA、ストア提出は未実施。
+iOSプロジェクトは2026-10-11にmacOSで生成し、Simulator向け署名なしビルドと起動を確認済み。iOS実機QA、署名AAB/IPA、ストア提出は未実施。
 
 ## 共通環境
 
@@ -73,33 +73,56 @@ Capacitor設定だけ変えても、生成済みAndroidの識別子は自動変�
 
 ## iOS
 
-macOS / Xcode 26以上 / Command Line Toolsが必要。今回のLinux環境では未生成・未ビルド。
-macOSで以下を実施する。
+### 生成・Simulatorビルド結果（2026-10-11 JST, macOS）
+
+環境: macOS 26.5.2 (25F84) / Xcode 26.5 (17F42) / iOS Simulator 26.5 / Node.js 26.8.1。ブランチ `ios/project`（`codex/android-build-foundation` から分岐）。
+
+```sh
+npm ci
+npm run check
+npm test               # 16ミッション PASS
+npm run build          # www/ 18ファイル
+npx cap add ios        # 実施済み。再実行しない
+npm run sync:ios
+xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug \
+  -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+  -derivedDataPath ios/DerivedData CODE_SIGNING_ALLOWED=NO build   # BUILD SUCCEEDED
+```
+
+Capacitor 8.5.3（Swift Package Manager、CocoaPods不使用）。`ios/DerivedData` と `ios/App/App/public` はGit管理外。
+
+生成後に行った変更:
+- AppIcon: `assets/icon.png` と同一の1024×1024画像を `AppIcon.appiconset/AppIcon-512@2x.png` に配置（SHA-1一致を確認）
+- Splash: 黒背景＋アイコンの2732×2732画像を `Splash.imageset` の3ファイル（1x/2x/3x）に配置
+- Info.plist: `ITSAppUsesNonExemptEncryption = false` を追加
+- `MARKETING_VERSION = 1.4.0`、`CURRENT_PROJECT_VERSION = 1`
+- Display Name「ドル現場防衛戦」、Bundle Identifier `jp.kmccreativelab.dolgenba`（**仮値**）は `cap add ios` が設定済み
+- 画面の向き（回転あり）・iPad対応（`TARGETED_DEVICE_FAMILY = 1,2`）は生成時の既定値のまま
+
+### 以降の更新
 
 ```sh
 npm ci
 npm test
-npm run build
-npx cap add ios
 npm run sync:ios
 npm run open:ios
 ```
 
-`cap add ios` は初回のみ。Capacitor 8はSwift Package Managerが標準。
-アプリアイコンは `assets/icon.png`（1024×1024・透過なし）を `ios/App/App/Assets.xcassets/AppIcon.appiconset` に登録する。
-所有者がTeam/Bundle Identifier/Version/Buildを設定し、Simulator → 実機 → Archive → TestFlightへ進む。
+所有者がXcodeでTeamを選び、Simulator → 実機 → Archive → TestFlightへ進む。提出のたびにBuild番号を+1する。
 証明書・プロビジョニング・署名鍵・パスワードをGitへ登録しない。
+appIdを変更する場合は、Xcodeの `PRODUCT_BUNDLE_IDENTIFIER`（Debug/Release）も同時に変更する。
 
 ## 配信までの未完了事項
 
 - Android実機QA（起動、表示、タッチ、可聴音、戻る操作、端末サイズ、バックグラウンド復帰）
 - 戻る操作を一時停止/画面遷移とどう連動させるか。現状はCapacitor標準動作で、ゲーム専用処理は追加していない
 - 時計/ローカルフォント修正の統合、オフライン確認
-- ~~仮のCapacitorアイコン/スプラッシュを製品素材へ置換~~ Androidは2026-10-11に置換済み（原画は `assets/icon.png`）。iOSは生成後にXcodeのAppIconへ登録する
+- ~~仮のCapacitorアイコン/スプラッシュを製品素材へ置換~~ Androidは2026-10-11に置換済み（原画は `assets/icon.png`）。iOSも2026-10-11にAppIcon/Splashを置換済み
 - バックアップ設定（生成時のallowBackup=true）と端末内保存の説明・実挙動の整合、INTERNET権限、データ申告の確認
 - appId、versionCode、素材権利・名称・プライバシーポリシー・年齢区分の所有者確認
 - Android署名付きAAB、内部テスト、ストア提出
-- iOSプロジェクト生成、実機QA、署名Archive/TestFlight、ストア提出
+- ~~iOSプロジェクト生成~~（2026-10-11済）、iOS実機QA、署名Archive/TestFlight、ストア提出
+- iOSのセーフエリア対応（Simulatorでヘッダーがステータスバー／Dynamic Islandに重なる）
 
 ## 公式資料（2026-10-11確認）
 
