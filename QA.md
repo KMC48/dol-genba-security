@@ -1,3 +1,15 @@
+# iOSプロジェクト生成 / 2026-10-11
+
+環境: macOS 26.5.2 / Xcode 26.5 (17F42) / iOS Simulator 26.5（iPhone 17）/ Node.js 26.8.1 / Capacitor 8.5.3。ブランチ `ios/project`。
+
+- `npm ci` / `npm run check` / `npm test`（16ミッション PASS）/ `npm run build`（www 18ファイル）成功。
+- `npx cap add ios` → `npm run sync:ios` 成功。Capacitorのバージョンは変更なし。
+- `xcodebuild ... -sdk iphonesimulator CODE_SIGNING_ALLOWED=NO build`: **BUILD SUCCEEDED**（警告はappintentsmetadataprocessorの情報メッセージのみ）。
+- アプリ内 `public/` は www と同一（Capacitorが追加する cordova.js / cordova_plugins.js を除く）。
+- Simulator（iPhone 17）でインストール・起動。タイトル画面（画像・VER. 1.4表示）、会場/アイドル選択画面、「警備を開始する」→カウントダウン→プレイ画面の表示を確認。
+- **要対応**: タイトル画面・プレイ画面とも、ヘッダー（ロゴ・音OFF・?ボタン）がステータスバー／Dynamic Islandと重なる。`viewport-fit=cover` 指定に対しヘッダーの safe-area-inset 余白がないため。ゲームのCSSは今回変更していない（QAチェックリスト #6 に該当）。
+- 未実施: 60秒プレイの完走・結果画面、音、中断/復帰、保存、iPhone実機QA、署名、Archive、TestFlight。
+
 # Androidビルド基盤 / 2026-10-11
 
 Android生成・依存関係固定・Web同梱の検証結果は [ANDROID_BUILD_QA.md](ANDROID_BUILD_QA.md)。以下はWeb版の過去記録。
