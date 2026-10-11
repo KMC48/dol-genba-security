@@ -38,7 +38,7 @@ const STAGE_LAYOUT=[
  {feet:.331,lip:.353,idolHeight:50}
 ];
 const canvas=$('game'),ctx=canvas.getContext('2d'),preview=$('preview'),pctx=preview.getContext('2d');
-let chosenVenue=0,chosenGroup=0,mode='menu',state=null,lastFrame=0,assetReady=false,assetError=false;
+let chosenVenue=0,chosenGroup=0,mode='title',titleChoice=0,state=null,lastFrame=0,assetReady=false,assetError=false;
 let audioOn=false,audioCtx=null,musicBeat=0,musicClock=0;
 const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 let bests={};try{bests=JSON.parse(localStorage.getItem('nexus-genba-records-v1')||'{}')}catch{}
@@ -61,7 +61,14 @@ function tone(freq,duration=.1,type='square',volume=.035,delay=0){
 }
 function soundSuccess(){tone(600,.07);tone(900,.09,'square',.025,.065)}
 function music(dt){if(!audioOn||!audioCtx)return;musicClock-=dt;if(musicClock>0)return;musicClock=.19;const melody=[523,659,784,659,880,784,659,587,523,659,784,1047,988,784,659,587];tone(melody[musicBeat%16],.12,'square',.011);if(musicBeat%2===0)tone([131,131,175,196][Math.floor(musicBeat/4)%4],.15,'triangle',.032);musicBeat++}
-$('soundBtn').onclick=()=>{audioOn=!audioOn;if(audioOn){const AC=window.AudioContext||window.webkitAudioContext;if(!AC){audioOn=false;setText('soundBtn','音 非対応');return}audioCtx??=new AC();audioCtx.resume().catch(()=>{})}else{audioCtx?.suspend().catch(()=>{})}setText('soundBtn',audioOn?'音 ON':'音 OFF');$('soundBtn').setAttribute('aria-label',audioOn?'サウンドをオフにする':'サウンドをオンにする');tone(660,.08)};
+function setSound(on){audioOn=on;if(audioOn){const AC=window.AudioContext||window.webkitAudioContext;if(!AC){audioOn=false;setText('soundBtn','音 非対応');return}audioCtx??=new AC();audioCtx.resume().catch(()=>{})}else{audioCtx?.suspend().catch(()=>{})}setText('soundBtn',audioOn?'音 ON':'音 OFF');$('soundBtn').setAttribute('aria-label',audioOn?'サウンドをオフにする':'サウンドをオンにする')}
+$('soundBtn').onclick=()=>{setSound(!audioOn);tone(660,.08)};
+// Title screen: the first tap doubles as the user gesture iOS needs before audio can play.
+function updateTitleCursor(){$('titleSound').classList.toggle('selected',titleChoice===0);$('titleMute').classList.toggle('selected',titleChoice===1)}
+function leaveTitle(withSound){if(mode!=='title')return;setSound(withSound);mode='menu';document.body.classList.remove('on-title');$('title').classList.add('hidden');$('menu').classList.remove('hidden');buildMenu();window.scrollTo({top:0,behavior:'instant'});tone(523,.08);tone(784,.08,'square',.035,.08);tone(1047,.16,'square',.035,.16)}
+{const top=Object.values(bests).filter(b=>b&&Number.isFinite(Number(b.score))).sort((a,b)=>b.score-a.score)[0];setText('titleBest',top?`HI-SCORE ${Number(top.score).toLocaleString()} pt`:'60びょうの げんばしょうぶ')}
+$('titleSound').onclick=()=>leaveTitle(true);$('titleMute').onclick=()=>leaveTitle(false);
+[['titleSound',0],['titleMute',1]].forEach(([id,i])=>{$(id).addEventListener('pointerenter',()=>{titleChoice=i;updateTitleCursor()});$(id).addEventListener('focus',()=>{titleChoice=i;updateTitleCursor()})});
 function weightedType(){const weights=GROUPS[chosenGroup].weights;let n=rand(0,weights.reduce((a,b)=>a+b,0));for(let i=0;i<weights.length;i++){n-=weights[i];if(n<0)return i}return weights.length-1}
 function stageY(venue=chosenVenue){return 720*STAGE_LAYOUT[venue].feet}
 function frontRowY(venue=chosenVenue){return 720*STAGE_LAYOUT[venue].lip+106}
@@ -269,7 +276,7 @@ function drawPreview(time){
  drawSprite(pctx,0,245,401,115);drawSprite(pctx,1,358,406,116);
  pctx.fillStyle='#e24c72';pctx.fillRect(371,178,65,24);pixelText(pctx,'光害！',404,196,'#fff',16);
 }
-function frame(now){const dt=Math.min(.05,Math.max(0,(now-lastFrame)/1000));lastFrame=now;if(mode!=='menu'){if(mode==='playing'||mode==='countdown')update(dt);drawGame()}requestAnimationFrame(frame)}
+function frame(now){const dt=Math.min(.05,Math.max(0,(now-lastFrame)/1000));lastFrame=now;if(mode!=='menu'&&mode!=='title'){if(mode==='playing'||mode==='countdown')update(dt);drawGame()}requestAnimationFrame(frame)}
 canvas.addEventListener('pointerdown',e=>{
  if(mode!=='playing')return;e.preventDefault();const r=canvas.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*640,y=(e.clientY-r.top)/r.height*720;
  const labelHit=state.fans.find(f=>{const box=fanLabel(f);return !f.normal&&f.status==='active'&&Math.abs(x-box.x)<=box.width/2+3&&y>=box.y-24&&y<=box.y+12});
@@ -279,6 +286,7 @@ canvas.addEventListener('pointerdown',e=>{
 });
 document.addEventListener('keydown',e=>{
  if(e.repeat||$('helpDialog').open)return;
+ if(mode==='title'){if(e.key==='ArrowUp'||e.key==='ArrowDown'){e.preventDefault();titleChoice=1-titleChoice;updateTitleCursor();tone(440,.05)}else if(e.key==='Enter'||e.code==='Space'){e.preventDefault();leaveTitle(titleChoice===0)}return}
  if(e.key==='Escape'){if(mode==='playing'||mode==='countdown'){e.preventDefault();pause()}return}
  if(mode!=='playing')return;
  if(e.code==='Space'){e.preventDefault();special()}
@@ -298,6 +306,6 @@ if(document.modelContext?.registerTool){
  const lifecycle=new AbortController();
  const register=tool=>{try{Promise.resolve(document.modelContext.registerTool(tool,{signal:lifecycle.signal})).catch(()=>{})}catch{}};
  register({name:'get_mission_status',title:'現場の状態を確認',description:'Read the selected venue, lineup, current game phase and current score. Does not change the game.',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true,untrustedContentHint:false},execute:()=>({phase:mode,venue:chosenVenue,lineup:chosenGroup,remaining:state?.remaining??60,ejected:state?.count??0,score:state?.score??0})});
- register({name:'configure_mission',title:'現場を選ぶ',description:'Select one of four venues and four fictional idol groups on the mission-selection screen. Does not start play. Indices 0–3 follow the visible order.',inputSchema:{type:'object',properties:{venue:{type:'integer',minimum:0,maximum:3},lineup:{type:'integer',minimum:0,maximum:3}},required:['venue','lineup'],additionalProperties:false},annotations:{readOnlyHint:false,untrustedContentHint:false},execute:input=>{if(mode!=='menu')throw new Error('Return to mission selection before configuring.');if(!input||!Number.isInteger(input.venue)||!Number.isInteger(input.lineup)||input.venue<0||input.venue>3||input.lineup<0||input.lineup>3)throw new Error('venue and lineup must be integers from 0 to 3.');chosenVenue=input.venue;chosenGroup=input.lineup;buildMenu();return {venue:VENUES[chosenVenue].name,lineup:GROUPS[chosenGroup].name}}});
+ register({name:'configure_mission',title:'現場を選ぶ',description:'Select one of four venues and four fictional idol groups on the mission-selection screen. Does not start play. Indices 0–3 follow the visible order.',inputSchema:{type:'object',properties:{venue:{type:'integer',minimum:0,maximum:3},lineup:{type:'integer',minimum:0,maximum:3}},required:['venue','lineup'],additionalProperties:false},annotations:{readOnlyHint:false,untrustedContentHint:false},execute:input=>{if(mode!=='menu'&&mode!=='title')throw new Error('Return to mission selection before configuring.');if(!input||!Number.isInteger(input.venue)||!Number.isInteger(input.lineup)||input.venue<0||input.venue>3||input.lineup<0||input.lineup>3)throw new Error('venue and lineup must be integers from 0 to 3.');chosenVenue=input.venue;chosenGroup=input.lineup;buildMenu();return {venue:VENUES[chosenVenue].name,lineup:GROUPS[chosenGroup].name}}});
  window.addEventListener('pagehide',()=>lifecycle.abort(),{once:true});
 }

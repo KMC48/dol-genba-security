@@ -52,3 +52,27 @@ footer{padding-bottom:calc(19px + env(safe-area-inset-bottom))}
  body.playing .play-layout,body.playing .game-column{display:flex;flex-direction:column;flex:1;width:100%}
  body.playing .action-deck{margin-top:auto;border-top:1px solid #34414c}
 }
+
+/* Title screen: Famicom-style frame around the supplied key visual (source pixels untouched). */
+body.on-title .topbar,body.on-title footer{display:none}
+body.on-title .app{max-width:none;padding:0}
+.title-screen{min-height:100dvh;display:grid;place-items:center;background:#000;padding:calc(18px + env(safe-area-inset-top)) 16px calc(18px + env(safe-area-inset-bottom));background-image:repeating-linear-gradient(0deg,#ffffff06 0 2px,transparent 2px 4px)}
+.title-frame{width:100%;max-width:520px;display:flex;flex-direction:column;align-items:center;text-align:center;font-family:var(--pixel)}
+.title-kicker{margin:0;color:#3cbcfc;font:12px var(--pixel);letter-spacing:3px}
+.title-logo{margin:10px 0 0;font:400 clamp(44px,13vw,72px)/1.05 var(--pixel);letter-spacing:2px;color:#fcfcfc;text-shadow:4px 4px 0 #e40058,8px 8px 0 #000}
+.title-logo span{display:block;color:#f8b800}
+.title-sub{margin:14px 0 18px;padding:4px 12px;background:#e40058;color:#fcfcfc;font:14px var(--pixel);letter-spacing:6px}
+.title-art{width:min(100%,max(240px,calc((100dvh - 360px) * 1.15)));aspect-ratio:1.15;position:relative;overflow:hidden;background:#172c39;border:4px solid #fcfcfc;box-shadow:0 0 0 4px #000,0 0 0 8px #3cbcfc}
+.title-art img{position:absolute;max-width:none;left:0;top:-17.5%;width:181%;height:auto;image-rendering:pixelated}
+.title-menu{display:flex;flex-direction:column;align-items:flex-start;gap:6px;margin:26px auto 0}
+.title-choice{background:none;border:0;padding:8px 6px;color:#bcbcbc;font:20px var(--pixel);letter-spacing:2px;text-align:left;min-height:44px}
+.title-choice.selected{color:#fcfcfc}
+.title-cursor{display:inline-block;width:1.4em;color:#f8b800;opacity:0}
+.title-choice.selected .title-cursor{opacity:1;animation:title-blink 1s steps(1) infinite}
+.title-choice:focus-visible{outline:2px solid #3cbcfc;outline-offset:2px}
+.title-best{margin:18px 0 0;color:#f8b800;font:14px var(--pixel);letter-spacing:2px}
+.title-copy{margin:10px 0 0;color:#7c7c7c;font:11px var(--pixel);letter-spacing:1px}
+@keyframes title-blink{50%{opacity:0}}
+@media(prefers-reduced-motion:reduce){.title-choice.selected .title-cursor{animation:none}}
+/* The prep screen opens straight on mission select now that the key visual lives on the title screen. */
+.menu-screen>.mission-heading{border-top:0}
