@@ -27,7 +27,7 @@ jobs:
       - name: Check game logic
         run: npm run check && npm test
       - name: Install Android SDK packages
-        run: sdkmanager "platforms;android-36" "build-tools;35.0.0"
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;35.0.0" > /dev/null
       - name: Build bundled debug APK
         run: npm run build:android:debug
       - name: Check Android lint
