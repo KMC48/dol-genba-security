@@ -115,7 +115,7 @@ appIdを変更する場合は、Xcodeの `PRODUCT_BUNDLE_IDENTIFIER`（Debug/Rel
 ## 配信までの未完了事項
 
 - Android実機QA（起動、表示、タッチ、可聴音、戻る操作、端末サイズ、バックグラウンド復帰）
-- 戻る操作を一時停止/画面遷移とどう連動させるか。現状はCapacitor標準動作で、ゲーム専用処理は追加していない
+- Androidの戻る操作はゲーム専用処理を実装済み（実機QAは未実施）。画面別仕様・検証手順は [ANDROID_BACK_QA.md](ANDROID_BACK_QA.md)
 - 時計/ローカルフォント修正の統合、オフライン確認
 - ~~仮のCapacitorアイコン/スプラッシュを製品素材へ置換~~ Androidは2026-10-11に置換済み（原画は `assets/icon.png`）。iOSも2026-10-11にAppIcon/Splashを置換済み
 - バックアップ設定（生成時のallowBackup=true）と端末内保存の説明・実挙動の整合、INTERNET権限、データ申告の確認

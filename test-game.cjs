@@ -112,3 +112,6 @@ s.anim=0;t.drawGame();
 console.log(JSON.stringify({checks:'PASS',missions:runs,note:'Logic checks only; not browser or native-device validation'},null,2));
 
 })().catch(e=>{console.error(e);process.exit(1)});
+
+// Keep Back regressions in the existing npm test / Android CI entry point.
+require('./test-android-back.cjs');
