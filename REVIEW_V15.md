@@ -28,3 +28,9 @@ GitHubへのpush・公開は自動承認レビューにより、今回の依頼�
 ## 検証
 4会場×4グループ、顔別人数の一致、モッシュ2人、一斉退場、重複確保防止、見逃し・誤認の除外、再挑戦リセット、観客入替・ポーズ停止をNodeテストで確認済み。詳細はQA.md。
 Android/iOSの実機確認とストア向けバイナリ作成は今回行っていません。
+
+## Windowsでの統合（2026-10-14 Claude Code）
+- PR #5（Android戻る操作・タイトルへ戻る）のブランチ上に `changes.patch` を適用。`index.html` の結果ダイアログが競合したため、v1.5の退場オタク一覧と「タイトルへ戻る」ボタンを両方残して解消。
+- `package.json` の1.5.0に合わせ、Android `versionName` とiOS `MARKETING_VERSION` を1.5.0へ更新（`verify:android` がversion不一致で失敗するため）。versionCode/Buildはストア未提出のため1のまま。
+- 戻る操作テストの模擬DOMに `#resultBreakdown [data-face]` を追加。
+- `npm test` 20件＋16ミッションPASS。ヘッドレスChrome 390×844で60秒プレイ→結果まで確認（顔別人数の合計47人＝退場人数47人、JS例外なし、結果の「タイトルへ戻る」動作）。
