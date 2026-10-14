@@ -135,6 +135,8 @@ function pause(){if(mode!=='playing'&&mode!=='countdown')return;state.previousMo
 function resume(){if(mode!=='paused')return;mode=state.previousMode||'playing';$('pauseDialog').close();lastFrame=performance.now();updateHud();canvas.focus({preventScroll:true})}
 function goMenu(){mode='menu';document.body.classList.remove('playing');$('resultDialog').close();$('pauseDialog').close();$('play').classList.add('hidden');$('menu').classList.remove('hidden');buildMenu();window.scrollTo({top:0,behavior:'instant'})}
 function goTitle(){
+ // Leaving from pause/result abandons the mission without saving, same as goMenu.
+ $('resultDialog').close();$('pauseDialog').close();
  mode='title';document.body.classList.remove('playing');document.body.classList.add('on-title');
  $('menu').classList.add('hidden');$('play').classList.add('hidden');$('title').classList.remove('hidden');
  titleChoice=audioOn?0:1;updateTitleCursor();updateTitleBest();
@@ -311,7 +313,9 @@ document.addEventListener('keydown',e=>{
  if(e.code==='Space'){e.preventDefault();special()}
  if(/^[0-9]$/.test(e.key)){const f=state.fans.find(f=>!f.normal&&f.key===Number(e.key)&&f.status==='active');if(f)chooseFan(f)}
 });
-$('startBtn').onclick=startGame;$('retryBtn').onclick=startGame;$('selectBtn').onclick=goMenu;$('backBtn').onclick=goMenu;$('pauseBtn').onclick=pause;$('resumeBtn').onclick=resume;$('specialBtn').onclick=special;
+$('startBtn').onclick=startGame;$('retryBtn').onclick=startGame;$('selectBtn').onclick=goMenu;$('backBtn').onclick=goMenu;$('pauseTitleBtn').onclick=goTitle;$('resultTitleBtn').onclick=goTitle;$('menuTitleBtn').onclick=goTitle;$('pauseBtn').onclick=pause;$('resumeBtn').onclick=resume;$('specialBtn').onclick=special;
+// Header logo: go to the title without reloading; during a mission it only pauses so a stray tap never ends the run.
+$('brandLink').addEventListener('click',e=>{e.preventDefault();if(mode==='playing'||mode==='countdown')pause();else if(mode!=='title')goTitle()});
 $('pauseDialog').addEventListener('cancel',e=>{e.preventDefault();resume()});$('resultDialog').addEventListener('cancel',e=>{e.preventDefault();goMenu()});
 let helpPaused=false;
 $('helpBtn').onclick=()=>{helpPaused=mode==='playing'||mode==='countdown';if(helpPaused){state.previousMode=mode;mode='paused'}$('helpDialog').showModal()};

@@ -80,3 +80,21 @@ npm run build:android:debug
 - https://developer.android.com/reference/android/webkit/WebView#evaluateJavascript(java.lang.String,%20android.webkit.ValueCallback)
 - https://developer.android.com/reference/android/app/Activity#moveTaskToBack(boolean)
 - 使用APIの互換性はローカルにインストールしたCapacitor 8.5.3の `BridgeActivity.java` でも確認。
+
+## 「タイトルへ戻る」ボタン（2026-10-14 追加）
+
+| 画面 | 操作 | 動作 |
+| --- | --- | --- |
+| 現場選択 | 左上「◀ タイトルへ戻る」 | タイトルへ |
+| 一時停止 | 「タイトルへ戻る」 | ミッションを中断してタイトルへ（記録は保存しない） |
+| 結果 | 「タイトルへ戻る」 | タイトルへ（記録は結果表示時に保存済み） |
+| ヘッダーのロゴ | タップ | プレイ中・カウントダウン中は一時停止のみ。それ以外はページを再読み込みせずタイトルへ |
+
+いずれもAndroidの戻る操作と同じ `goTitle()` を使う。タイトルのカーソルは現在の音設定（ON/OFF）に合わせる。
+
+検証（Windows / 2026-10-14）: `npm test` 20件PASS（追加4件: 3画面のボタンとロゴ）。ヘッドレスChrome 390×844で現場選択・一時停止のボタンからタイトルへ戻ることを確認、JS例外なし。`npm run build:android:debug`・`:app:lintDebug` 成功。実機は未確認。
+
+実機で追加確認:
+- [ ] 各「タイトルへ戻る」でタイトルが表示され、もう一度はじめられる
+- [ ] 一時停止→タイトルへ戻る→再開始で、前のミッションの時間・得点が残っていない
+- [ ] プレイ中にロゴを誤タップしても一時停止になるだけ

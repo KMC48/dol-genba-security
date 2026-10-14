@@ -226,3 +226,24 @@ test('native JS contract consumes missing/throwing handler, never requests backg
   assert.equal(vm.runInNewContext(nativeBackScript,{window:{}}),'handled');
   assert.equal(vm.runInNewContext(nativeBackScript,{window:{handleAndroidBack(){throw new Error('not ready');}}}),'handled');
 });
+
+// Visible "return to title" buttons share goTitle with Android Back.
+for(const [from,button] of [['menu','menuTitleBtn'],['paused','pauseTitleBtn'],['result','resultTitleBtn']])
+  test(`${button} returns to title from ${from} without saving an abandoned mission`,async()=>{
+    const g=await load();
+    if(from==='menu')g.el('titleSound').click();
+    else{start(g,{sound:true});if(from==='paused')g.el('pauseBtn').click();else g.tick(61000);}
+    const writes=g.writes.length;
+    g.el(button).click();await g.flush();visible(g,'title');
+    assert.equal(g.el('pauseDialog').open,false);assert.equal(g.el('resultDialog').open,false);
+    assert.equal(g.document.body.classList.contains('playing'),false);
+    assert.equal(g.writes.length,writes);assert.equal(g.state().titleChoice,0,'cursor follows current sound setting');
+    g.key('Enter');visible(g,'menu');assert.equal(g.state().audioOn,true);
+  });
+
+test('header logo pauses a running mission and returns to title elsewhere',async()=>{
+  const g=await load();start(g);
+  const e=g.el('brandLink').dispatch('click');assert.equal(e.defaultPrevented,true);visible(g,'paused');
+  g.el('backBtn').click();await g.flush();visible(g,'menu');
+  g.el('brandLink').dispatch('click');visible(g,'title');
+});
