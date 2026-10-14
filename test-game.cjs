@@ -11,7 +11,7 @@ const els={};const getEl=id=>els[id]??=new El(id);getEl('game').getContext=()=>c
 const registry={};const storage={};
 const context={console,Math,Number,JSON,Error,Promise,AbortController,performance:{now:()=>0},Image:function(){return images.shift()},document:{getElementById:getEl,querySelectorAll:()=>[],addEventListener(){},body:new El('body'),modelContext:{registerTool(t){registry[t.name]=t}}},window:{matchMedia:()=>({matches:false}),scrollTo(){},addEventListener(){}},localStorage:{getItem:k=>storage[k]??null,setItem:(k,v)=>storage[k]=v},requestAnimationFrame(){}};
 (async()=>{
-for(const p of ['characters.png','venues.png','security-sprites.png','blond-fans.png','black-shirt-fan.png','black-shirt-throw.png','black-shirt-mosh.png','black-shirt-invasion.png']){const im=await loadImage(base+p);Object.defineProperty(im,'src',{set(){}});images.push(im)}
+for(const p of ['characters.png','venues.png','security-sprites.png','blond-fans.png','black-shirt-fan.png','black-shirt-throw.png','black-shirt-mosh.png','black-shirt-invasion.png','animal-planet-idols.png']){const im=await loadImage(base+p);Object.defineProperty(im,'src',{set(){}});images.push(im)}
 vm.createContext(context);
 vm.runInContext(fs.readFileSync(base+'game.js','utf8')+'\nglobalThis.test={startGame,resetGame,beginPlay,update,chooseFan,eject,special,pause,resume,goMenu,spawnFan,drawGame,drawPreview,moshPose,spawnScheduledFans,updateCrowdFan,frontRowY,stageY,idolPose,idolPresence,missConnection,missFan,evaluateRank,finish,getState:()=>state,getMode:()=>mode,setConfig:(v,g)=>{chosenVenue=v;chosenGroup=g},setReady:()=>assetReady=true,venues:VENUES,groups:GROUPS};',context);
 

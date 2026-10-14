@@ -30,6 +30,11 @@ const portraits=new Image(),venues=new Image(),guards=new Image(),blondFans=new 
 const blackShirtThrow=new Image(),blackShirtMosh=new Image(),blackShirtInvasion=new Image();blackShirtThrow.src='black-shirt-throw.png';blackShirtMosh.src='black-shirt-mosh.png';blackShirtInvasion.src='black-shirt-invasion.png';
 const BLACK_ACTION_SPRITES={11:{image:blackShirtThrow,crop:[177, 101, 980, 1080]},12:{image:blackShirtMosh,crop:[173, 138, 920, 1052]},13:{image:blackShirtInvasion,crop:[198, 96, 865, 1072]}};
 const BLACK_SHIRT_CROP=[258,72,794,1128];
+// Hidden lineup アニマルプラネット: cat, rabbit, panda, fox, lion (left to right on stage).
+const animalIdols=new Image();animalIdols.src='animal-planet-idols.png';
+const ANIMAL_IDOL_SPRITES={14:{image:animalIdols,crop:[58,335,202,398]},15:{image:animalIdols,crop:[357,287,239,444]},16:{image:animalIdols,crop:[675,350,192,382]},17:{image:animalIdols,crop:[946,320,227,411]},18:{image:animalIdols,crop:[1262,341,218,392]}};
+// One shared scale keeps body sizes equal; the rabbit's ears simply stand taller.
+const ANIMAL_IDOL_BODY=400;
 // UI portraits use the existing artwork; action variants share the same black-shirt face.
 // The black-T crop reaches the chest so the white sheep mark peeks in at the bottom.
 const FACE_CROPS={2:[portraits,685,160,188,188],4:[portraits,97,687,170,170],5:[portraits,390,748,180,180],6:[portraits,678,716,180,180],8:[blondFans,275,12,240,240],9:[blondFans,1054,3,240,240],10:[blackShirtFan,432,118,536,536]};
@@ -68,7 +73,8 @@ function buildMenu(){
   :`<button class="group-card${g.hidden?' is-hidden':''}" data-group="${i}" aria-pressed="${i===chosenGroup}" style="--group-color:${g.color}"><span class="group-color"></span><b>${g.name}</b><small>${g.tag}</small></button>`).join('');
  document.querySelectorAll('[data-venue]').forEach(b=>b.onclick=()=>{chosenVenue=Number(b.dataset.venue);buildMenu();tone(420,.06)});
  document.querySelectorAll('[data-group]').forEach(b=>b.onclick=()=>{chosenGroup=Number(b.dataset.group);buildMenu();tone(520,.06)});
- setText('missionBrief',GROUPS[chosenGroup].brief);setText('sceneName',VENUES[chosenVenue].full);
+ // Keep the load-failure notice visible when the menu is rebuilt after the title screen.
+ setText('missionBrief',assetError?'画像を読み込めませんでした。ページを再読み込みしてください。':GROUPS[chosenGroup].brief);setText('sceneName',VENUES[chosenVenue].full);
  const best=bests[bestKey()];setText('bestLine',best?`この現場のBEST：${best.count}人 / ${Number(best.score).toLocaleString()} pt`:`${VENUES[chosenVenue].capacity} / 60秒タイムアタック`);
 }
 const legend=TYPES.map(t=>`<div class="legend-row"><span class="legend-mark" style="--mark-color:${t.color}">${t.mark}</span><span>${t.name}</span></div>`).join('');
@@ -290,7 +296,7 @@ function update(dt){
  state.hudClock-=dt;if(state.hudClock<=0){updateHud();state.hudClock=.1}if(state.remaining<=0)finish();
 }
 function drawSprite(c,index,x,y,h=82,flip=false,alpha=1,squash=1){
- const action=BLACK_ACTION_SPRITES[index];
+ const action=BLACK_ACTION_SPRITES[index]||ANIMAL_IDOL_SPRITES[index];
  const sheet=action? action.image:index===10?blackShirtFan:index<2?guards:index>=8?blondFans:portraits,crop=action?action.crop:index===10?BLACK_SHIRT_CROP:index<2?GUARD_CROPS[index]:index>=8?BLOND_FAN_CROPS[index-8]:CROPS[index];
  if(!sheet.complete||!sheet.naturalWidth)return;const [sx,sy,sw,sh]=crop;const w=h*sw/sh;c.save();c.globalAlpha=alpha;c.translate(Math.round(x),Math.round(y));if(flip)c.scale(-1,1);c.drawImage(sheet,sx,sy,sw,sh,Math.round(-w/2),-h*squash,w,h*squash);c.restore();
 }
@@ -300,7 +306,7 @@ function drawVenue(c,w,h,time,venueIndex=chosenVenue){
  if(venues.complete&&venues.naturalWidth){const tile=venues.width/2;c.drawImage(venues,(venueIndex%2)*tile,Math.floor(venueIndex/2)*tile,tile,tile,0,0,w,h)}
  const layout=STAGE_LAYOUT[venueIndex];
  c.fillStyle='#04081520';c.fillRect(0,h*.35,w,h*.65);
- for(let i=0;i<5;i++){const presence=idolPresence(i);if(!presence.visible)continue;const p=idolPose(venueIndex,i,w,h);p.x+=presence.offset*w/640;c.save();c.globalAlpha=presence.alpha;c.fillStyle='#08101b70';c.beginPath();c.ellipse(p.x,p.y+1,10*h/720,3*h/720,0,0,Math.PI*2);c.fill();const sway=reduced?0:Math.sin(time*5+i*.8)*1.5;drawSprite(c,7,p.x+sway,p.y,p.height,i%2===1,.98*presence.alpha);c.restore()}
+ for(let i=0;i<5;i++){const presence=idolPresence(i);if(!presence.visible)continue;const p=idolPose(venueIndex,i,w,h);p.x+=presence.offset*w/640;c.save();c.globalAlpha=presence.alpha;c.fillStyle='#08101b70';c.beginPath();c.ellipse(p.x,p.y+1,10*h/720,3*h/720,0,0,Math.PI*2);c.fill();const sway=reduced?0:Math.sin(time*5+i*.8)*1.5;if(GROUPS[chosenGroup].hidden){const sprite=14+i;drawSprite(c,sprite,p.x+sway,p.y,p.height*ANIMAL_IDOL_SPRITES[sprite].crop[3]/ANIMAL_IDOL_BODY,false,.98*presence.alpha)}else drawSprite(c,7,p.x+sway,p.y,p.height,i%2===1,.98*presence.alpha);c.restore()}
  const cc=['#ff83a8','#a4e5ff','#ffd971','#c5fa5f','#d8acff'];
  for(let row=0;row<2;row++)for(let col=0;col<13;col++){
   const beat=reduced?0:Math.sin(time*(state?.rush?7:4)+col*.5+row),x=w*(.11+col*.065)+(reduced?0:beat*1.5),y=(frontRowY(venueIndex)+76+row*30)*h/720-Math.max(0,beat)*2;
@@ -411,7 +417,7 @@ $('helpBtn').onclick=()=>{helpPaused=mode==='playing'||mode==='countdown';if(hel
 $('helpDialog').addEventListener('close',()=>{if(helpPaused&&mode==='paused'){mode=state.previousMode;lastFrame=performance.now();updateHud()}helpPaused=false});
 document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>$(b.dataset.close).close());
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&(mode==='playing'||mode==='countdown'))pause()});
-Promise.all([portraits,venues,guards,blondFans,blackShirtFan,blackShirtThrow,blackShirtMosh,blackShirtInvasion].map(img=>new Promise((resolve,reject)=>{if(img.complete&&img.naturalWidth)resolve();else{img.onload=resolve;img.onerror=reject}}))).then(()=>{assetReady=true}).catch(()=>{assetError=true;$('startBtn').disabled=true;setText('missionBrief','画像を読み込めませんでした。ページを再読み込みしてください。')});
+Promise.all([portraits,venues,guards,blondFans,blackShirtFan,blackShirtThrow,blackShirtMosh,blackShirtInvasion,animalIdols].map(img=>new Promise((resolve,reject)=>{if(img.complete&&img.naturalWidth)resolve();else{img.onload=resolve;img.onerror=reject}}))).then(()=>{assetReady=true}).catch(()=>{assetError=true;$('startBtn').disabled=true;setText('missionBrief','画像を読み込めませんでした。ページを再読み込みしてください。')});
 requestAnimationFrame(frame);
 // Browser-native agent controls share the same state and actions as the visible controls.
 if(document.modelContext?.registerTool){
