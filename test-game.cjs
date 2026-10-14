@@ -28,6 +28,10 @@ t.pause();const elapsed=s.elapsed;t.update(2);assert.equal(s.elapsed,elapsed);t.
 s.charge=100;for(let i=0;i<4;i++)t.spawnFan(false);const before=s.count,targets=s.fans.filter(f=>!f.normal&&f.status==='active').reduce((n,f)=>n+(f.type===1?2:1),0),normals=s.fans.filter(f=>f.normal).length;t.special();assert.equal(s.count,before+targets);assert.equal(s.charge,0);assert.equal(s.fans.filter(f=>f.normal&&f.status==='active').length,normals);
 for(let i=0;i<1200&&t.getMode()==='playing';i++)t.update(.05);assert.equal(t.getMode(),'result');assert.equal(s.remaining,0);assert(getEl('resultDialog').open);assert(storage['nexus-genba-records-v1']);
 t.startGame();assert.equal(t.getState().count,0);assert.equal(t.getState().remaining,60);t.goMenu();assert.equal(t.getMode(),'menu');
+// Hidden lineup stays locked ("？？？") until every regular lineup has an S clear.
+assert(getEl('groups').innerHTML.includes('？？？')&&getEl('groups').innerHTML.includes('全アイドルS評価で出演'));
+assert(!getEl('groups').innerHTML.includes('アニマルプラネット'));
+const bottomNote=fs.readFileSync(base+'index.html','utf8');assert(bottomNote.includes('違反者はタップで退場。善良なオタクを退場させてはならない。'));assert(!bottomNote.includes('架空の警備会社・アイドルによるフィクション'));assert(bottomNote.includes('退場させたオタク一覧'));
 const runs=[];
 for(let venue=0;venue<4;venue++){for(let group=0;group<4;group++){
  t.setConfig(venue,group);t.resetGame();t.beginPlay();s=t.getState();let maxLive=0;const rareIds=new Set();
@@ -65,8 +69,9 @@ t.resetGame();t.beginPlay();s=t.getState();s.fans=[];s.spawnClock=100;const ordi
 for(let v=0;v<4;v++){
  t.setConfig(v,3);t.resetGame();s=t.getState();s.fans=[];
  for(let i=0;i<4;i++){const f=t.spawnFan(false,4);assert(f&&f.slot<4);assert(Math.abs(f.y-t.frontRowY())<=3)}
- assert.equal(t.spawnFan(false,4),null,'full front row defers spawn, even with empty rear rows');
- const freedSlot=s.fans[1].slot;s.fans[1].status='gone';const replacement=t.spawnFan(false,4);assert.equal(replacement.slot,freedSlot);
+ // No cap: a fifth monopolizer squeezes into the full front row, never a rear row.
+ const squeezed=t.spawnFan(false,4);assert(squeezed&&squeezed.slot<4,'full front row still accepts offenders');assert(Math.abs(squeezed.y-t.frontRowY())<=14);s.fans.pop();
+ const freedSlot=s.fans[1].slot;s.fans[1].status='gone';const replacement=t.spawnFan(false,4);assert.equal(replacement.slot,freedSlot,'free spots are used before squeezing in');
  const pose=t.idolPose(v);assert.equal(pose.y,t.stageY(v));assert(pose.height>43);assert(pose.y<t.frontRowY(v)-84,'idols remain on stage above the audience');
 }
 t.setConfig(0,0);t.resetGame();t.beginPlay();s=t.getState();
@@ -82,18 +87,16 @@ for(const [count,missed,mistakes,idolDeparture,rank] of rankCases){
  t.resetGame();t.beginPlay();s=t.getState();Object.assign(s,{fans:[],count,missed,mistakes,idolDeparture});t.finish();
  assert.equal(getEl('rank').textContent,rank);assert.equal(getEl('resultImage').src,`rank-${rank.toLowerCase()}.png`);assert(getEl('resultImage').alt.length>0);
 }
-// Final unresolved targets count as misses, including two mosh participants and the rare penalty.
+// Final unresolved targets on the floor for 3s+ count as misses, including two mosh participants and the rare penalty.
+// Arrivals in the last 3 seconds are excluded from the rank denominator.
 t.resetGame();t.beginPlay();s=t.getState();s.fans=[];s.count=100;
-t.spawnFan(false,1);t.spawnFan(false,6);t.finish();assert.equal(s.missed,3);assert.equal(s.rarePenalty,1000);assert.equal(s.rank,'B');
+{const mosh=t.spawnFan(false,1),rare=t.spawnFan(false,6),late=t.spawnFan(false,0);mosh.age=3;rare.age=3;late.age=2.9;}t.finish();assert.equal(s.missed,3);assert.equal(s.rarePenalty,1000);assert.equal(s.rank,'B');
 t.finish();assert.equal(s.missed,3);assert.equal(s.rarePenalty,1000,'finish is idempotent');
-// No target is spawned without its full response window; the exact boundary remains playable.
+// Offenders keep arriving until the whistle, with no cap on how many are on the floor.
 for(let v=0;v<4;v++){
- t.setConfig(v,0);t.resetGame();t.beginPlay();s=t.getState();s.fans=[];
- for(const type of [0,1,2,3,4,5,6]){
-  s.rareSpawned=false;const life=type===6?4:type===5?7:t.venues[v].life;
-  s.remaining=life+.49;assert.equal(t.spawnFan(false,type),null);
-  s.remaining=life+.5;const f=t.spawnFan(false,type);assert(f);assert.equal(f.life,life);s.fans=[];
- }
+ t.setConfig(v,0);t.resetGame();t.beginPlay();s=t.getState();s.fans=[];s.remaining=.5;
+ for(const type of [0,1,2,3,5]){const f=t.spawnFan(false,type);assert(f,'spawns in the final second');}
+ s.fans=[];for(let i=0;i<40;i++)assert(t.spawnFan(false,i%4),'no simultaneous-offender cap');
 }
 // Additional black T-shirt appearance coexists with every eligible original; blond roles and good fans stay distinct.
 t.setConfig(0,0);t.resetGame();t.beginPlay();s=t.getState();
@@ -143,7 +146,21 @@ t.resetGame();t.beginPlay();s=t.getState();
 s.fans=[];s.spawnClock=100;const mm=t.spawnFan(false,1);mm.x=170;mm.y=475;mm.phase=0;const rr=t.spawnFan(false,6);const vv=t.spawnFan(false,5);vv.x=490;vv.y=345;
 s.anim=.35;t.drawGame();
 s.anim=0;t.drawGame();
-console.log(JSON.stringify({checks:'PASS',missions:runs,note:'Logic checks only; not browser or native-device validation'},null,2));
+// Perfect play earned S on all four regular lineups: the hidden lineup is now unlocked and persisted.
+assert.deepEqual(JSON.parse(storage['dol-genba-s-clears-v1']).sort(),[0,1,2,3]);
+t.goMenu();assert(getEl('groups').innerHTML.includes('アニマルプラネット'));assert(!getEl('groups').innerHTML.includes('？？？'));
+// アニマルプラネット: at least three times as many offenders as the regular lineups at every venue.
+const animalRuns=[];
+for(let venue=0;venue<4;venue++){
+ const offenders=group=>{t.setConfig(venue,group);t.resetGame();t.beginPlay();const st=t.getState();const seen=new Set();
+  for(let i=0;i<1220&&t.getMode()==='playing';i++){st.fans.forEach(f=>{if(!f.normal&&f.type!==6)seen.add(f.id)});t.update(.05)}
+  t.goMenu();return seen.size};
+ const regular=[0,1,2,3].map(offenders).reduce((a,b)=>a+b,0)/4,animal=offenders(4);
+ animalRuns.push({venue,regular,animal});
+ assert(animal>=regular*3,`animal planet x3 at venue ${venue}: ${animal} vs ${regular}`);
+}
+t.setConfig(0,4);t.goMenu();assert(getEl('missionBrief').textContent.includes('動物園状態'));t.setConfig(0,0);
+console.log(JSON.stringify({checks:'PASS',animal:animalRuns,missions:runs,note:'Logic checks only; not browser or native-device validation'},null,2));
 
 })().catch(e=>{console.error(e);process.exit(1)});
 

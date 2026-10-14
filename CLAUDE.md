@@ -37,3 +37,7 @@ AndroidデバッグAPK→実機QA→署名AAB。iOSはmacOS/XcodeでSimulator→
 
 ## v1.5（2026-10-14、公開前）
 顔別の退場人数は `faceBreakdown`、行為別は `breakdown`。モッシュは2つの顔を各1人、黒Tポーズ11〜13は顔10へ統一。`updateCrowdFan` / `updateCrowd` が一般客の観覧・横通路への入退場を制御する。`REVIEW_V15.md` と `GAME_SPEC.md` を参照。
+
+## v1.6（2026-10-15）
+同時出現の上限なし・終了まで出現。終了3秒未満の出現者は見逃しに数えない。隠しアイドル「アニマルプラネット」（GROUPS[4]、`hidden:true`、`spawnRate:3.6`）は全4アイドルS評価で解禁（`dol-genba-s-clears-v1`）、`?unlock=animal`で検証用解禁。詳細はGAME_SPECの末尾。
+

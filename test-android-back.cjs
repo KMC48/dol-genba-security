@@ -52,7 +52,7 @@ class Element {
   getContext() { return new Proxy({}, {get:() => () => {}}); }
 }
 
-async function load({records, storage, audio='supported', storageBlocked=false} = {}) {
+async function load({records, storage, audio='supported', storageBlocked=false, search=''} = {}) {
   const saved = storage || new Map([['unrelated-setting','keep']]);
   if (records !== undefined) saved.set(SAVE_KEY, records);
   const writes=[];
@@ -91,6 +91,7 @@ async function load({records, storage, audio='supported', storageBlocked=false} 
     localStorage:{getItem(k){if(storageBlocked)throw new Error('blocked');return saved.get(k)??null;},
       setItem(k,v){if(storageBlocked)throw new Error('blocked');writes.push([k,v]);saved.set(k,v);}},
     performance:{now:()=>now}, requestAnimationFrame(fn){nextFrame=fn;},
+    location:{search},
   });
   vm.runInContext(source+`\nglobalThis.probe=()=>({mode,audioOn,titleChoice,assetReady,
     score:state?.score,remaining:state?.remaining,chosenVenue,chosenGroup,game:state?JSON.stringify(state):null});`,context,{filename:'game.js'});
@@ -248,4 +249,15 @@ test('header logo pauses a running mission and returns to title elsewhere',async
   const e=g.el('brandLink').dispatch('click');assert.equal(e.defaultPrevented,true);visible(g,'paused');
   g.el('backBtn').click();await g.flush();visible(g,'menu');
   g.el('brandLink').dispatch('click');visible(g,'title');
+});
+
+// Hidden lineup: locked card is a disabled "？？？"; ?unlock=animal opens it for testing without saving.
+test('hidden lineup is locked by default and open with ?unlock=animal',async()=>{
+  const g=await load();g.el('titleMute').click();
+  const locked=g.el('groups').children[4];assert.equal(locked.disabled,true);
+  assert.match(g.el('groups').innerHTML,/？？？[\s\S]*全アイドルS評価で出演/);
+  const d=await load({search:'?unlock=animal'});d.el('titleMute').click();
+  const card=d.el('groups').children[4];assert.equal(card.disabled,false);card.click();
+  assert.equal(d.state().chosenGroup,4);assert.match(d.el('missionBrief').textContent,/動物園状態/);
+  assert.equal(d.storage.has('dol-genba-s-clears-v1'),false,'debug unlock is not persisted');
 });
