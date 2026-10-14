@@ -196,7 +196,7 @@ function finish(){
  setText('resultRare',state.rarePoints?`♥ 繋がりオタク確保：+${state.rarePoints.toLocaleString()}点`:state.rarePenalty?`♥ 見逃し：アイドル1人脱退 / −${state.rarePenalty.toLocaleString()}点`:'♥ 繋がりオタク：未対応');
  renderResultBreakdown();setText('resultQuote',state.idolDeparture?'「ひとり欠けたステージ。次は繋がりを見逃すな！」':state.mistakes===0?'「善良なオタクへの誤認ゼロ。アイドルも、オタクもありがとう！」':state.mistakes>3?'「次は、ルールを守っているオタクをよく見極めよう。」':'「今日も、アイドルのステージを守り抜いた！」');
  const prev=bests[bestKey()];const isBest=!prev||state.count>prev.count||(state.count===prev.count&&state.score>prev.score);$('newBest').classList.toggle('hidden',!isBest);if(isBest){bests[bestKey()]={count:state.count,score:state.score};try{localStorage.setItem('nexus-genba-records-v1',JSON.stringify(bests))}catch{}}
- $('resultDialog').showModal();$('resultDialog').scrollTop=0;tone(523,.13);tone(659,.13,'square',.035,.14);tone(784,.3,'square',.035,.28);
+ $('resultDialog').showModal();$('resultDialog').focus({preventScroll:true});$('resultDialog').scrollTop=0;tone(523,.13);tone(659,.13,'square',.035,.14);tone(784,.3,'square',.035,.28);
 }
 function missConnection(){
  if(state.idolDeparture)return;

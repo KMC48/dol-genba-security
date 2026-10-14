@@ -1,3 +1,13 @@
+# v1.5 iOS確認・結果画面の修正 / 2026-10-15（Mac）
+
+環境: macOS 26.5.2 / Xcode 26.5 / iOS Simulator 26.5（iPhone 17）/ Node.js 26.8.1。ブランチ `feat/result-faces-live-crowd`（PR #6）。
+
+- 修正: iOSで結果画面が「もう一度」ボタン（最下部）までスクロールした状態で開いた。`showModal()` が最初のボタンへフォーカスして表示位置を動かすため、`scrollTop=0` だけでは効かない。結果ダイアログ自体にフォーカスを移して先頭から表示するよう変更（`tabindex="-1"`、`focus({preventScroll:true})`）。
+- `npm run check` / `npm test`（16ミッション PASS）/ `node test-android-back.cjs`（20件 PASS）/ `npm run sync:ios` / Simulator向け xcodebuild 成功（MARKETING_VERSION 1.5.0）。
+- iPhone 17 Simulator: VER. 1.5、準備画面の「タイトルへ戻る」、プレイ中の一般客の入替・横通路からの出入り、60秒終了後の「本日の退場オタク一覧」を確認。結果画面が先頭（MISSION REPORT・ランク）から表示されることを確認。
+- 気づいた点（未対応）: 起動直後に数秒間、真っ黒な画面が出る（スプラッシュ画像自体は正常）。準備画面で長押しすると文字が選択される。
+- 未実施: iPhone実機、可聴音。
+
 # Web v1.5 検証 / 2026-10-14
 
 環境: Linux / Node.js 24.19.0。基準main: `57c8dfa920bc9ce1b9b284935b1fdf2c5100b2da`。
