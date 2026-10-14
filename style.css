@@ -76,3 +76,5 @@ body.on-title .app{max-width:none;padding:0}
 @media(prefers-reduced-motion:reduce){.title-choice.selected .title-cursor{animation:none}}
 /* The prep screen opens straight on mission select now that the key visual lives on the title screen. */
 .menu-screen>.mission-heading{border-top:0}
+/* Return-to-title link on mission select */
+.menu-nav{padding-top:14px}.back-link{background:transparent;border:1px solid var(--line);color:var(--lime);font-family:var(--pixel);font-size:14px;min-height:40px;padding:0 14px;cursor:pointer}.back-link:hover,.back-link:focus-visible{border-color:var(--lime)}

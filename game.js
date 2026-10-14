@@ -66,7 +66,8 @@ $('soundBtn').onclick=()=>{setSound(!audioOn);tone(660,.08)};
 // Title screen: the first tap doubles as the user gesture iOS needs before audio can play.
 function updateTitleCursor(){$('titleSound').classList.toggle('selected',titleChoice===0);$('titleMute').classList.toggle('selected',titleChoice===1)}
 function leaveTitle(withSound){if(mode!=='title')return;setSound(withSound);mode='menu';document.body.classList.remove('on-title');$('title').classList.add('hidden');$('menu').classList.remove('hidden');buildMenu();window.scrollTo({top:0,behavior:'instant'});tone(523,.08);tone(784,.08,'square',.035,.08);tone(1047,.16,'square',.035,.16)}
-{const top=Object.values(bests).filter(b=>b&&Number.isFinite(Number(b.score))).sort((a,b)=>b.score-a.score)[0];setText('titleBest',top?`HI-SCORE ${Number(top.score).toLocaleString()} pt`:'60びょうの げんばしょうぶ')}
+function updateTitleBest(){const top=Object.values(bests).filter(b=>b&&Number.isFinite(Number(b.score))).sort((a,b)=>b.score-a.score)[0];setText('titleBest',top?`HI-SCORE ${Number(top.score).toLocaleString()} pt`:'60びょうの げんばしょうぶ')}
+updateTitleBest();
 $('titleSound').onclick=()=>leaveTitle(true);$('titleMute').onclick=()=>leaveTitle(false);
 [['titleSound',0],['titleMute',1]].forEach(([id,i])=>{$(id).addEventListener('pointerenter',()=>{titleChoice=i;updateTitleCursor()});$(id).addEventListener('focus',()=>{titleChoice=i;updateTitleCursor()})});
 function weightedType(){const weights=GROUPS[chosenGroup].weights;let n=rand(0,weights.reduce((a,b)=>a+b,0));for(let i=0;i<weights.length;i++){n-=weights[i];if(n<0)return i}return weights.length-1}
@@ -133,6 +134,26 @@ function special(){if(mode!=='playing'||state.charge<100)return;const targets=st
 function pause(){if(mode!=='playing'&&mode!=='countdown')return;state.previousMode=mode;mode='paused';$('pauseDialog').showModal();updateHud()}
 function resume(){if(mode!=='paused')return;mode=state.previousMode||'playing';$('pauseDialog').close();lastFrame=performance.now();updateHud();canvas.focus({preventScroll:true})}
 function goMenu(){mode='menu';document.body.classList.remove('playing');$('resultDialog').close();$('pauseDialog').close();$('play').classList.add('hidden');$('menu').classList.remove('hidden');buildMenu();window.scrollTo({top:0,behavior:'instant'})}
+function goTitle(){
+ // Leaving from pause/result abandons the mission without saving, same as goMenu.
+ $('resultDialog').close();$('pauseDialog').close();
+ mode='title';document.body.classList.remove('playing');document.body.classList.add('on-title');
+ $('menu').classList.add('hidden');$('play').classList.add('hidden');$('title').classList.remove('hidden');
+ titleChoice=audioOn?0:1;updateTitleCursor();updateTitleBest();
+ window.scrollTo({top:0,behavior:'instant'});$(titleChoice===0?'titleSound':'titleMute').focus({preventScroll:true});
+}
+// Called only by Android's MainActivity. Never changes browser/iOS history.
+// Modals take priority over their underlying screen; reuse the visible UI actions.
+window.handleAndroidBack=()=>{
+ if($('helpDialog').open){$('helpDialog').close();return 'handled'}
+ if($('pauseDialog').open){resume();return 'handled'}
+ if($('resultDialog').open){goMenu();return 'handled'}
+ if(mode==='playing'||mode==='countdown'){pause();return 'handled'}
+ if(mode==='result'){goMenu();return 'handled'}
+ if(mode==='menu'){goTitle();return 'handled'}
+ // Only the root screen may leave the foreground. Unknown/transitional states stay put.
+ return mode==='title'?'background':'handled';
+};
 function evaluateRank({count,missed,mistakes,idolDeparture}){
  const total=count+missed,rate=total?count/total:0;
  const rank=total>0&&missed===0&&mistakes===0&&!idolDeparture?'S':rate>=.9&&mistakes<=2&&!idolDeparture?'A':rate>=.7&&mistakes<=5?'B':rate>=.4&&mistakes<=9?'C':'D';
@@ -292,7 +313,9 @@ document.addEventListener('keydown',e=>{
  if(e.code==='Space'){e.preventDefault();special()}
  if(/^[0-9]$/.test(e.key)){const f=state.fans.find(f=>!f.normal&&f.key===Number(e.key)&&f.status==='active');if(f)chooseFan(f)}
 });
-$('startBtn').onclick=startGame;$('retryBtn').onclick=startGame;$('selectBtn').onclick=goMenu;$('backBtn').onclick=goMenu;$('pauseBtn').onclick=pause;$('resumeBtn').onclick=resume;$('specialBtn').onclick=special;
+$('startBtn').onclick=startGame;$('retryBtn').onclick=startGame;$('selectBtn').onclick=goMenu;$('backBtn').onclick=goMenu;$('pauseTitleBtn').onclick=goTitle;$('resultTitleBtn').onclick=goTitle;$('menuTitleBtn').onclick=goTitle;$('pauseBtn').onclick=pause;$('resumeBtn').onclick=resume;$('specialBtn').onclick=special;
+// Header logo: go to the title without reloading; during a mission it only pauses so a stray tap never ends the run.
+$('brandLink').addEventListener('click',e=>{e.preventDefault();if(mode==='playing'||mode==='countdown')pause();else if(mode!=='title')goTitle()});
 $('pauseDialog').addEventListener('cancel',e=>{e.preventDefault();resume()});$('resultDialog').addEventListener('cancel',e=>{e.preventDefault();goMenu()});
 let helpPaused=false;
 $('helpBtn').onclick=()=>{helpPaused=mode==='playing'||mode==='countdown';if(helpPaused){state.previousMode=mode;mode='paused'}$('helpDialog').showModal()};
