@@ -1,6 +1,6 @@
 # ドル現場防衛戦 — Claude Code引き継ぎ案内
 
-基準: Web v1.4 / KMC Creative Lab / 2026-10-03
+基準: Web v1.5（未公開の修正版）/ KMC Creative Lab / 2026-10-14
 公開: https://kmc48.github.io/dol-genba-security/
 ソース: https://github.com/KMC48/dol-genba-security
 
@@ -36,3 +36,6 @@ Webゲーム・14点の画像・回帰テスト・www生成・Capacitorひな形
 android/iosプロジェクト、package-lock.json、APK/AAB/IPA、署名・ストア申請は未作成/未実施。
 仮appIdはjp.kmccreativelab.dolgenba。ネイティブ登録前に所有者と確定。
 実機のライフサイクル/音声/safe-area/低FPS時計/オフライン字体を重点検証する。
+
+## 2026-10-14 修正版
+顔付きの退場集計と一般客の入退場・応援を追加。今回の変更は `REVIEW_V15.md` にまとめています。公開mainは未変更です。

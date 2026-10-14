@@ -13,7 +13,7 @@ const context={console,Math,Number,JSON,Error,Promise,AbortController,performanc
 (async()=>{
 for(const p of ['characters.png','venues.png','security-sprites.png','blond-fans.png','black-shirt-fan.png','black-shirt-throw.png','black-shirt-mosh.png','black-shirt-invasion.png']){const im=await loadImage(base+p);Object.defineProperty(im,'src',{set(){}});images.push(im)}
 vm.createContext(context);
-vm.runInContext(fs.readFileSync(base+'game.js','utf8')+'\nglobalThis.test={startGame,resetGame,beginPlay,update,chooseFan,eject,special,pause,resume,goMenu,spawnFan,drawGame,drawPreview,moshPose,spawnScheduledFans,frontRowY,stageY,idolPose,idolPresence,missConnection,missFan,evaluateRank,finish,getState:()=>state,getMode:()=>mode,setConfig:(v,g)=>{chosenVenue=v;chosenGroup=g},setReady:()=>assetReady=true,venues:VENUES,groups:GROUPS};',context);
+vm.runInContext(fs.readFileSync(base+'game.js','utf8')+'\nglobalThis.test={startGame,resetGame,beginPlay,update,chooseFan,eject,special,pause,resume,goMenu,spawnFan,drawGame,drawPreview,moshPose,spawnScheduledFans,updateCrowdFan,frontRowY,stageY,idolPose,idolPresence,missConnection,missFan,evaluateRank,finish,getState:()=>state,getMode:()=>mode,setConfig:(v,g)=>{chosenVenue=v;chosenGroup=g},setReady:()=>assetReady=true,venues:VENUES,groups:GROUPS};',context);
 
 const t=context.test;t.setReady();
 assert.equal(Object.keys(registry).length,2);
@@ -32,7 +32,7 @@ const runs=[];
 for(let venue=0;venue<4;venue++){for(let group=0;group<4;group++){
  t.setConfig(venue,group);t.resetGame();t.beginPlay();s=t.getState();let maxLive=0;const rareIds=new Set();
  for(let i=0;i<1220&&t.getMode()==='playing';i++){for(const f of s.fans)if(!f.normal&&f.status==='active')t.chooseFan(f);if(s.charge>=100)t.special();t.update(.05);s.fans.filter(f=>!f.normal&&f.type===6).forEach(f=>rareIds.add(f.id));maxLive=Math.max(maxLive,s.fans.filter(f=>!f.normal&&f.status==='active').length)}
- assert.equal(t.getMode(),'result');assert.equal(rareIds.size,1,'exactly one rare per mission');assert.equal(s.breakdown[6],1);assert(s.rarePoints>=1000&&s.rarePoints<=3000);assert(s.breakdown[5]>0);assert(s.count>25);assert.equal(s.mistakes,0);assert.equal(s.missed,0);assert.equal(s.rank,'S','perfect play can earn S in all 16 missions');assert.equal(s.breakdown.reduce((a,b)=>a+b,0),s.count);assert(s.queue.length===0);runs.push({venue,group,ejected:s.count,score:s.score,missed:s.missed,maxLive});t.goMenu();
+ assert.equal(t.getMode(),'result');assert.equal(rareIds.size,1,'exactly one rare per mission');assert.equal(s.breakdown[6],1);assert(s.rarePoints>=1000&&s.rarePoints<=3000);assert(s.breakdown[5]>0);assert(s.count>25);assert.equal(s.mistakes,0);assert.equal(s.missed,0);assert.equal(s.rank,'S','perfect play can earn S in all 16 missions');assert.equal(s.breakdown.reduce((a,b)=>a+b,0),s.count);assert(s.queue.length===0);for(let type=0;type<7;type++)assert.equal(Object.values(s.faceBreakdown[type]).reduce((a,b)=>a+b,0),s.breakdown[type],'face totals match category totals in every venue/group');runs.push({venue,group,ejected:s.count,score:s.score,missed:s.missed,maxLive});t.goMenu();
 }}
 // Targeted regression checks for collision, moving invaders and once-only rare lifecycle.
 t.setConfig(0,0);t.resetGame();t.beginPlay();s=t.getState();s.fans=[];s.spawnClock=100;
@@ -104,6 +104,40 @@ for(const type of [0,1,2,3,4,5,6]){
  else {assert(appearances.has(({1:12,3:11,5:13}[type]??10)));assert.equal(appearances.size,2,'original and new fan both remain')}
 }
 s.fans=[];for(let i=0;i<8;i++){const f=t.spawnFan(true);assert(f.sprite===2||f.sprite===3)}
+t.resetGame();t.beginPlay();s=t.getState();
+// Result portraits count captured people, including both mosh participants, exactly once.
+t.setConfig(0,0);t.resetGame();t.beginPlay();s=t.getState();s.fans=[];
+const pink=t.spawnFan(false,3);pink.sprite=2;t.eject(pink);t.eject(pink);
+const black=t.spawnFan(false,3);black.sprite=11;t.eject(black,true);
+const pair=t.spawnFan(false,1);pair.sprite=12;t.eject(pair);
+assert.equal(s.count,4);assert.equal(s.faceBreakdown[3][2],1);assert.equal(s.faceBreakdown[3][10],1);
+assert.equal(s.breakdown[1],2);assert.equal(s.faceBreakdown[1][6],1);assert.equal(s.faceBreakdown[1][10],1);
+const unhandled=t.spawnFan(false,2);t.missFan(unhandled);assert.equal(s.breakdown[2],0);
+t.finish();const roster=getEl('resultBreakdown').innerHTML;
+assert.equal((roster.match(/class="offender-card/g)||[]).length,7);
+assert(roster.includes('ピンクT ×1人'));assert(roster.includes('黒T ×1人'));assert(roster.includes('緑T ×1人'));
+assert(roster.includes('未確保'));assert(roster.includes('is-empty'));
+t.resetGame();assert(t.getState().faceBreakdown.every(row=>Object.keys(row).length===0));
+// General audience enters and leaves without affecting score, missed count, or idol status.
+t.beginPlay();s=t.getState();s.fans=s.fans.filter(f=>f.normal);s.spawnClock=1000;s.rareSpawned=true;s.invasionSeen=true;
+const originalIds=new Set(s.fans.map(f=>f.id)),seenIds=new Set(originalIds);let enteringSeen=false,leavingSeen=false,maxAudience=0;
+const still=s.fans[0],oldX=still.x;t.update(.1);assert.notEqual(still.x,oldX,'spectators take small steps');
+t.pause();const frozen=JSON.stringify(s);t.update(2);assert.equal(JSON.stringify(s),frozen,'pause freezes audience positions, timers, and animation');t.resume();
+for(let step=0;step<1200&&t.getMode()==='playing';step++){
+ const next=s.elapsed+.05;s.rush=(next>=15&&next<21)||(next>=32&&next<38)||next>=50;
+ t.update(.05);maxAudience=Math.max(maxAudience,s.fans.length);
+ for(const fan of s.fans){seenIds.add(fan.id);enteringSeen ||= fan.crowdPhase==='entering';leavingSeen ||= fan.crowdPhase==='leaving';assert(fan.normal);assert(fan.slot>=4&&fan.slot<16);}
+ assert.equal(new Set(s.fans.map(f=>f.slot)).size,s.fans.length,'each audience member reserves its own slot');
+}
+assert(enteringSeen&&leavingSeen);assert(seenIds.size>originalIds.size);assert(maxAudience<=6);
+assert.equal(s.score,0);assert.equal(s.count,0);assert.equal(s.missed,0);assert.equal(s.mistakes,0);assert.equal(s.idolDeparture,null);
+assert(s.faceBreakdown.every(row=>Object.keys(row).length===0));
+// Crowded-floor input: a moving general fan must not intercept a valid offender body tap.
+t.resetGame();t.beginPlay();s=t.getState();s.fans=[];
+const offender=t.spawnFan(false,3),bystander=t.spawnFan(true);bystander.x=offender.x;bystander.y=offender.y;
+getEl('game').listeners.pointerdown({clientX:offender.x,clientY:offender.y-40,preventDefault(){}});
+assert(s.queue.includes(offender.id));assert.equal(s.mistakes,0);
+s.fans=[bystander];getEl('game').listeners.pointerdown({clientX:bystander.x,clientY:bystander.y-40,preventDefault(){}});assert.equal(s.mistakes,1,'ordinary fan alone still triggers misidentification');
 t.resetGame();t.beginPlay();s=t.getState();
 // Render actual gameplay code at contact and approach phases.
 s.fans=[];s.spawnClock=100;const mm=t.spawnFan(false,1);mm.x=170;mm.y=475;mm.phase=0;const rr=t.spawnFan(false,6);const vv=t.spawnFan(false,5);vv.x=490;vv.y=345;
