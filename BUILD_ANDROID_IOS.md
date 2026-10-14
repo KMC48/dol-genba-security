@@ -50,7 +50,7 @@ PRと手動実行用に `Android debug APK` workflowを用意。Node 22 / runner
 ## appId: 所有者の確定が必要
 
 **`jp.kmccreativelab.dolgenba` は仮値のまま**。今回の開発用プロジェクト生成は、この仮値を使用する依頼に基づく。
-ストア登録・リリース署名・配信前に所有者が名称と識別子を確定する。Android versionNameは1.4.0、versionCodeは初期値1。
+ストア登録・リリース署名・配信前に所有者が名称と識別子を確定する。Android versionNameは1.5.0（v1.5で更新。`npm run verify:android` がpackage.jsonのversionと照合する）、versionCodeは初期値1（ストア未提出のため据え置き）。
 変更する場合は以下を同時に更新して同期・再ビルドする。
 
 - `capacitor.config.json` の `appId`
@@ -95,7 +95,7 @@ Capacitor 8.5.3（Swift Package Manager、CocoaPods不使用）。`ios/DerivedDa
 - AppIcon: `assets/icon.png` と同一の1024×1024画像を `AppIcon.appiconset/AppIcon-512@2x.png` に配置（SHA-1一致を確認）
 - Splash: 黒背景＋アイコンの2732×2732画像を `Splash.imageset` の3ファイル（1x/2x/3x）に配置
 - Info.plist: `ITSAppUsesNonExemptEncryption = false` を追加
-- `MARKETING_VERSION = 1.4.0`、`CURRENT_PROJECT_VERSION = 1`
+- `MARKETING_VERSION = 1.5.0`（v1.5で更新）、`CURRENT_PROJECT_VERSION = 1`
 - Display Name「ドル現場防衛戦」、Bundle Identifier `jp.kmccreativelab.dolgenba`（**仮値**）は `cap add ios` が設定済み
 - 画面の向き（回転あり）・iPad対応（`TARGETED_DEVICE_FAMILY = 1,2`）は生成時の既定値のまま
 

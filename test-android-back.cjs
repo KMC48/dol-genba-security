@@ -64,6 +64,8 @@ async function load({records, storage, audio='supported', storageBlocked=false} 
   document.body = new Element(html.match(/<body\b([^>]*)>/)[1]);
   document.getElementById=el;
   document.querySelectorAll = selector => {
+    // v1.5 result roster draws one face canvas per entry.
+    if (selector==='#resultBreakdown [data-face]') return [...el('resultBreakdown').innerHTML.matchAll(/<canvas([^>]*)>/g)].map(m => new Element(m[1]));
     const match=selector.match(/^\[data-(venue|group|close)\]$/);
     assert.ok(match, `supported selector ${selector}`);
     if (match[1]==='close') return [...html.matchAll(/<button\b([^>]*data-close="[^"]+"[^>]*)>/g)].map(m => new Element(m[1]));

@@ -12,7 +12,7 @@
 
 ## 作業開始
 `npm test`、`npm run build`を実行しWeb版を保つ。正となるソースはルートのHTML/CSS/JSと画像14点。www/は生成物で直接編集しない。
-Capacitor 8.5.3でAndroidプロジェクト生成済み。appIdは依頼に基づき仮値で開発用生成しており、ストア登録・配信前に所有者が確定する。iOSは未生成。BUILD_ANDROID_IOS.mdとANDROID_BUILD_QA.mdを参照。
+Capacitor 8.5.3でAndroidプロジェクト生成済み。appIdは依頼に基づき仮値で開発用生成しており、ストア登録・配信前に所有者が確定する。iOSプロジェクトもPR #2で生成済み（ios/）。BUILD_ANDROID_IOS.mdとANDROID_BUILD_QA.mdを参照。
 package-lock.jsonをコミット済み。初回からnpm ci。Capacitor更新は4パッケージを同一バージョンに揃える。
 APIキー、トークン、署名鍵、keystore、証明書、プロビジョニングをGitへ入れない。
 広告・課金・分析SDK・ユーザー登録は依頼なしに追加しない。全面的なエンジン移行をしない。
@@ -34,3 +34,6 @@ AndroidデバッグAPK→実機QA→署名AAB。iOSはmacOS/XcodeでSimulator→
 追加の黒Tシャツキャラは、センターパート・ネックレスなし・胸に白い羊の頭部マークが最新版。初期のツーブロック/チェーンの案に戻さない。
 
 投げ・モッシュ・乱入の黒Tシャツは専用ポーズ（sprite 11/12/13）を使う。共通の立ちポーズへ戻さない。出現時の抽選35%で従来キャラも維持する。
+
+## v1.5（2026-10-14、公開前）
+顔別の退場人数は `faceBreakdown`、行為別は `breakdown`。モッシュは2つの顔を各1人、黒Tポーズ11〜13は顔10へ統一。`updateCrowdFan` / `updateCrowd` が一般客の観覧・横通路への入退場を制御する。`REVIEW_V15.md` と `GAME_SPEC.md` を参照。

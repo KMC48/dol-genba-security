@@ -39,6 +39,27 @@
 
 /* Result scenes share the same framing across all five ranks. */
 .result-image{display:block;width:100%;height:auto;max-height:29dvh;object-fit:contain;background:#0a1322;border:1px solid #334559;border-radius:6px;margin:4px 0 14px;image-rendering:pixelated}
+.result-roster{margin-top:24px}
+.roster-heading{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.roster-heading h3{font:18px var(--pixel);margin:0;color:var(--lime)}
+.roster-heading>span{font-size:11px;color:var(--muted)}
+.result-breakdown{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:0;list-style:none;margin:12px 0 0}
+.offender-card{min-width:0;border:1px solid #36434f;border-top:3px solid var(--offense-color);background:#1b2530;padding:10px}
+.offender-heading{display:flex;align-items:center;gap:6px;min-height:34px}
+.offender-mark{flex-shrink:0;display:grid;place-items:center;width:23px;height:23px;background:var(--offense-color);color:#0b1016;font:16px var(--pixel)}
+.offender-heading h4{margin:0;font-size:12px;line-height:1.5;color:var(--text);overflow-wrap:anywhere}
+.offender-total{display:flex;align-items:center;justify-content:space-between;gap:4px;margin:6px 0 10px}
+.result-breakdown .offender-total b{font:30px var(--pixel);color:var(--offense-color);margin:0;white-space:nowrap}
+.offender-total small{font:12px 'Noto Sans JP',sans-serif;margin-left:3px}
+.offender-total>span{font-size:10px;color:var(--offense-color)}
+.offender-faces{display:flex;gap:6px;flex-wrap:wrap}
+.offender-face{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10px;color:#d5dfe8}
+.offender-face canvas{display:block;width:48px;height:48px;image-rendering:pixelated;background:#2a3845;border:1px solid #526271;border-radius:4px}
+.offender-card.is-empty{background:#141e28;border-top-color:#68727b}
+.offender-card.is-empty canvas{filter:grayscale(1);opacity:.55}
+.offender-card.is-empty .offender-total b,.offender-card.is-empty .offender-total>span{color:#9ea9b4}
+.roster-note{font-size:11px!important;line-height:1.7!important;margin:10px 0 0}
+@media(max-width:380px){#resultDialog{padding:16px}.offender-card{padding:8px}.offender-face canvas{width:44px;height:44px}.offender-faces{gap:4px}.offender-total>span{font-size:9px}}
 .rank-assessment{display:flex;flex-direction:column;gap:5px;text-align:center;margin:0 0 16px;font-size:12px;line-height:1.6;color:#b7c7d7}.rank-assessment b{font-size:15px;color:#edf7ff}
 #resultDialog[data-rank="D"] .rank{color:#ff526b}#resultDialog[data-rank="C"] .rank{color:#f0ab73}.rank-manual{font-size:13px;line-height:1.9;color:#b7c7d7}
 
@@ -78,3 +99,6 @@ body.on-title .app{max-width:none;padding:0}
 .menu-screen>.mission-heading{border-top:0}
 /* Return-to-title link on mission select */
 .menu-nav{padding-top:14px}.back-link{background:transparent;border:1px solid var(--line);color:var(--lime);font-family:var(--pixel);font-size:14px;min-height:40px;padding:0 14px;cursor:pointer}.back-link:hover,.back-link:focus-visible{border-color:var(--lime)}
+
+/* The result dialog takes focus itself on open so iOS does not scroll to the retry button at the bottom. */
+#resultDialog:focus{outline:none}
