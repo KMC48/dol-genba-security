@@ -27,6 +27,10 @@ const portraits=new Image(),venues=new Image(),guards=new Image(),blondFans=new 
 const blackShirtThrow=new Image(),blackShirtMosh=new Image(),blackShirtInvasion=new Image();blackShirtThrow.src='black-shirt-throw.png';blackShirtMosh.src='black-shirt-mosh.png';blackShirtInvasion.src='black-shirt-invasion.png';
 const BLACK_ACTION_SPRITES={11:{image:blackShirtThrow,crop:[177, 101, 980, 1080]},12:{image:blackShirtMosh,crop:[173, 138, 920, 1052]},13:{image:blackShirtInvasion,crop:[198, 96, 865, 1072]}};
 const BLACK_SHIRT_CROP=[258,72,794,1128];
+// UI portraits use the existing artwork; action variants share the same black-shirt face.
+const FACE_CROPS={2:[portraits,685,160,188,188],4:[portraits,97,687,170,170],5:[portraits,390,748,180,180],6:[portraits,678,716,180,180],8:[blondFans,275,12,240,240],9:[blondFans,1054,3,240,240],10:[blackShirtFan,462,78,430,430]};
+const FACE_NAMES={2:'ピンクT',4:'紫T',5:'オレンジT',6:'緑T',8:'金髪マッシュ',9:'金髪',10:'黒T'};
+const CROWD_COLORS=['#ff91ba','#8cdfff','#d0f78c','#d4aeff'];
 const RANKS={S:{title:'伝説の現場守護神',alt:'誇らしげに立つIDOL SECURITYの警備員2人'},A:{title:'頼れる現場リーダー',alt:'金髪の最前管理オタクを連行する警備員2人'},B:{title:'普通の警備員',alt:'普通の表情で立つ警備員2人'},C:{title:'半人前の警備員',alt:'サイリウム投げオタクに詰められ、半泣きの警備員2人'},D:{title:'アイドル現場 出禁',alt:'跪く警備員2人と、大きな赤い出禁の文字'}};
 const BLOND_FAN_CROPS=[[42,18,718,987],[943,10,473,996]];
 const GUARD_CROPS=[[239,148,484,824],[885,182,359,789]];
@@ -75,7 +79,7 @@ function stageY(venue=chosenVenue){return 720*STAGE_LAYOUT[venue].feet}
 function frontRowY(venue=chosenVenue){return 720*STAGE_LAYOUT[venue].lip+106}
 function idolPose(venue=chosenVenue,index=2,w=640,h=720){const layout=STAGE_LAYOUT[venue];return {x:w*(.29+index*.105),y:h*layout.feet,height:(layout.idolHeight+(index===2?8:0))*h/720}}
 function freeSlots(){const result=[],front=frontRowY();for(let r=0;r<4;r++)for(let c=0;c<4;c++){const key=r*4+c;if(!state.fans.some(f=>f.slot===key&&f.status!=='gone'))result.push({slot:key,x:128+c*128,y:front+r*(627-front)/3})}return result}
-function spawnFan(normal=false,type=null){
+function spawnFan(normal=false,type=null,entering=false){
  const which=type??weightedType(),rare=!normal&&which===6;
  if(rare&&state.rareSpawned)return null;
  const life=rare?RARE_LIFETIME:which===5?7:VENUES[chosenVenue].life;
@@ -89,6 +93,12 @@ function spawnFan(normal=false,type=null){
  const used=state.fans.filter(f=>!f.normal&&f.status==='active').map(f=>f.key);let key=1;while(used.includes(key))key++;
  const sprite=normal?(Math.random()<.5?2:3):which!==4&&which!==6&&Math.random()<.35?({1:12,3:11,5:13}[which]??10):TYPES[which].sprite;
  const fan={...pos,x:pos.x+(rare?0:rand(-9,9)),y:pos.y+(rare?0:rand(-3,3)),id:state.nextId++,key:normal||rare?0:key,normal,type:which,sprite,age:0,life,phase:rand(0,Math.PI*2),status:'active',exit:0};
+ if(normal){
+  fan.homeX=fan.x;fan.homeY=fan.y;fan.crowdPhase=entering?'entering':'watching';fan.crowdClock=0;
+  fan.stay=rand(9,17);fan.cheer=Math.floor(rand(0,3));fan.light=CROWD_COLORS[Math.floor(rand(0,CROWD_COLORS.length))];
+  fan.aisleX=fan.homeX<320?-32:672;fan.walkDuration=rand(2,3);
+  if(entering)fan.x=fan.aisleX;
+ }
  if(!normal&&which===5){fan.startX=fan.x;fan.startY=fan.y;fan.targetX=640*(.29+Math.floor(rand(0,5))*.105);fan.targetY=stageY()+3}
  if(rare)state.rareSpawned=true;
  state.fans.push(fan);return fan;
@@ -98,7 +108,7 @@ function spawnScheduledFans(){
  if(!state.rareSpawned&&state.elapsed>=state.rareAt){const f=spawnFan(false,6);if(f){announce('4秒勝負！ 繋がりオタク出現',1.4);setText('statusLine','残り4秒！ 確保で10倍得点、見逃すと1人脱退・−1,000点。');log('RARE','アイドルとハートの相互通信…！ 見逃すと1人脱退・−1,000点。');tone(1047,.15);tone(1319,.2,'square',.03,.15)}}
 }
 function resetGame(){
- state={remaining:60,elapsed:0,count:0,score:0,combo:0,maxCombo:0,lastEject:-100,missed:0,mistakes:0,charge:0,breakdown:TYPES.map(()=>0),rareAt:rand(24,36),rareSpawned:false,rarePoints:0,rarePenalty:0,idolDeparture:null,invasionSeen:false,fans:[],effects:[],nextId:1,guard:{x:320,y:672},queue:[],spawnClock:0,countdown:3,lastBeep:4,rush:false,rushCycle:0,announcement:0,logs:[],pulse:0,anim:0,hudClock:0};
+ state={remaining:60,elapsed:0,count:0,score:0,combo:0,maxCombo:0,lastEject:-100,missed:0,mistakes:0,charge:0,breakdown:TYPES.map(()=>0),faceBreakdown:TYPES.map(()=>({})),crowdClock:2.5,crowdTarget:5,rareAt:rand(24,36),rareSpawned:false,rarePoints:0,rarePenalty:0,idolDeparture:null,invasionSeen:false,fans:[],effects:[],nextId:1,guard:{x:320,y:672},queue:[],spawnClock:0,countdown:3,lastBeep:4,rush:false,rushCycle:0,announcement:0,logs:[],pulse:0,anim:0,hudClock:0};
  for(let i=0;i<5;i++)spawnFan(true);
  mode='countdown';document.body.classList.add('playing');$('menu').classList.add('hidden');$('play').classList.remove('hidden');
  setText('playVenue',VENUES[chosenVenue].full);setText('playGroup',GROUPS[chosenGroup].name);setText('statusLine','赤いマークの違反者をタップ！');
@@ -123,6 +133,8 @@ function eject(f,special=false){
  const people=f.type===1?2:1;let points=0;
  for(let i=0;i<people;i++){state.combo++;points+=Math.round((f.type===6?1000:100)*(1+Math.min(state.combo-1,20)*.1))}
  state.maxCombo=Math.max(state.maxCombo,state.combo);state.lastEject=state.elapsed;state.count+=people;state.breakdown[f.type]+=people;state.score+=points;
+ // A mosh pair contains the green-shirt partner and the selected appearance: one each.
+ for(const sprite of f.type===1?[6,f.sprite]:[f.sprite]){const face=sprite>=10?10:sprite;state.faceBreakdown[f.type][face]=(state.faceBreakdown[f.type][face]||0)+1}
  if(!special)state.charge=Math.min(100,state.charge+12.5*people);
  if(f.type===6){state.rarePoints=points;log('RARE',`繋がりオタク確保！ +${points.toLocaleString()}点`)}
  f.status='exiting';f.exit=0;state.queue=state.queue.filter(id=>id!==f.id);fx(f.x,f.y-78,`${people===2?'2人退場！':f.type===6?'繋がり確保！':'退場！'} +${points}`,f.type===6?'#ffd86e':special?'#9ce6ff':'#c5fa5f');
@@ -159,6 +171,19 @@ function evaluateRank({count,missed,mistakes,idolDeparture}){
  const rank=total>0&&missed===0&&mistakes===0&&!idolDeparture?'S':rate>=.9&&mistakes<=2&&!idolDeparture?'A':rate>=.7&&mistakes<=5?'B':rate>=.4&&mistakes<=9?'C':'D';
  return {rank,rate,total,...RANKS[rank]};
 }
+function renderResultBreakdown(){
+ const most=Math.max(...state.breakdown);
+ $('resultBreakdown').innerHTML=TYPES.map((t,i)=>{
+  const count=state.breakdown[i],faces=Object.entries(state.faceBreakdown[i]);
+  if(!faces.length)faces.push([String(t.sprite),0]);
+  const badge=i===6?(count?'確保！':'未確保'):count&&count===most?'最多退場':count?'退場完了':'退場なし';
+  return `<li class="offender-card${count?'':' is-empty'}" style="--offense-color:${t.color}"><div class="offender-heading"><span class="offender-mark" aria-hidden="true">${t.mark}</span><h4>${t.name}</h4></div><div class="offender-total"><b>×${count}<small>人</small></b><span>${badge}</span></div><div class="offender-faces">${faces.map(([sprite,n])=>`<span class="offender-face"><canvas width="96" height="96" data-face="${sprite}" aria-hidden="true"></canvas><span>${FACE_NAMES[sprite]} ×${n}人</span></span>`).join('')}</div></li>`;
+ }).join('');
+ document.querySelectorAll('#resultBreakdown [data-face]').forEach(face=>{
+  const c=face.getContext('2d'),[sheet,sx,sy,sw,sh]=FACE_CROPS[face.dataset.face];
+  c.imageSmoothingEnabled=false;c.drawImage(sheet,sx,sy,sw,sh,0,0,96,96);
+ });
+}
 function finish(){
  if(mode!=='playing')return;
  // Never let a target still on the floor disappear from the rank denominator.
@@ -169,9 +194,9 @@ function finish(){
  setText('rankReason',{S:'見逃しゼロ・誤認ゼロ。完璧な現場対応！',A:'対応率90%以上・誤認2回以内・脱退なし',B:'対応率70%以上・誤認5回以内',C:'対応率40%以上・誤認9回以内',D:'対応率40%未満、または誤認10回以上'}[result.rank]);
  setText('resultMission',`${VENUES[chosenVenue].name} × ${GROUPS[chosenGroup].name}`);setText('resultCount',state.count);$('resultCount').insertAdjacentHTML('beforeend','<small>人</small>');setText('resultScore',state.score.toLocaleString());setText('resultCombo',state.maxCombo+'連');setText('resultMistakes',`${state.missed} / ${state.mistakes}`);
  setText('resultRare',state.rarePoints?`♥ 繋がりオタク確保：+${state.rarePoints.toLocaleString()}点`:state.rarePenalty?`♥ 見逃し：アイドル1人脱退 / −${state.rarePenalty.toLocaleString()}点`:'♥ 繋がりオタク：未対応');
- $('resultBreakdown').innerHTML=TYPES.map((t,i)=>`<span>${t.short}<b>${state.breakdown[i]}人</b></span>`).join('');setText('resultQuote',state.idolDeparture?'「ひとり欠けたステージ。次は繋がりを見逃すな！」':state.mistakes===0?'「善良なオタクへの誤認ゼロ。アイドルも、オタクもありがとう！」':state.mistakes>3?'「次は、ルールを守っているオタクをよく見極めよう。」':'「今日も、アイドルのステージを守り抜いた！」');
+ renderResultBreakdown();setText('resultQuote',state.idolDeparture?'「ひとり欠けたステージ。次は繋がりを見逃すな！」':state.mistakes===0?'「善良なオタクへの誤認ゼロ。アイドルも、オタクもありがとう！」':state.mistakes>3?'「次は、ルールを守っているオタクをよく見極めよう。」':'「今日も、アイドルのステージを守り抜いた！」');
  const prev=bests[bestKey()];const isBest=!prev||state.count>prev.count||(state.count===prev.count&&state.score>prev.score);$('newBest').classList.toggle('hidden',!isBest);if(isBest){bests[bestKey()]={count:state.count,score:state.score};try{localStorage.setItem('nexus-genba-records-v1',JSON.stringify(bests))}catch{}}
- $('resultDialog').showModal();tone(523,.13);tone(659,.13,'square',.035,.14);tone(784,.3,'square',.035,.28);
+ $('resultDialog').showModal();$('resultDialog').scrollTop=0;tone(523,.13);tone(659,.13,'square',.035,.14);tone(784,.3,'square',.035,.28);
 }
 function missConnection(){
  if(state.idolDeparture)return;
@@ -195,7 +220,30 @@ function idolPresence(index){
  const progress=clamp((state.elapsed-departure.at)/1.6,0,1);
  return {visible:progress<1,alpha:1-progress,offset:reduced?0:progress*42};
 }
+function updateCrowdFan(f,dt){
+ f.crowdClock+=dt;
+ if(f.crowdPhase==='watching'){
+  // Small steps stay inside the reserved spot; never run toward the stage or collide.
+  f.x=f.homeX+(reduced?0:Math.sin(f.crowdClock*.8+f.phase)*8);f.y=f.homeY;
+  if(f.crowdClock>=f.stay){f.crowdPhase='leaving';f.crowdClock=0;f.walkFromX=f.x}
+ }else{
+  const p=clamp(f.crowdClock/f.walkDuration,0,1),arrival=f.crowdPhase==='entering';
+  f.x=arrival?f.aisleX+(f.homeX-f.aisleX)*p:f.walkFromX+(f.aisleX-f.walkFromX)*p;
+  f.y=f.homeY;
+  if(p===1){if(arrival){f.crowdPhase='watching';f.crowdClock=0}else f.status='gone'}
+ }
+}
+function updateCrowd(dt){
+ state.crowdClock-=dt;if(state.crowdClock>0)return;
+ state.crowdClock=rand(2.4,4);
+ // A chorus brings a few fans in. Keep four free slots for the actual targets.
+ state.crowdTarget=state.rush?6:3+Math.floor(rand(0,3));
+ const audience=state.fans.filter(f=>f.normal&&f.status==='active');
+ if(audience.length<state.crowdTarget&&freeSlots().length>4&&state.remaining>4)spawnFan(true,null,true);
+ else if(audience.length>state.crowdTarget){const leaving=audience.find(f=>f.crowdPhase==='watching'&&f.crowdClock>4);if(leaving){leaving.crowdPhase='leaving';leaving.crowdClock=0;leaving.walkFromX=leaving.x}}
+}
 function update(dt){
+ if(mode!=='countdown'&&mode!=='playing')return;
  state.anim+=dt;
  if(mode==='countdown'){state.countdown-=dt;let num=Math.ceil(state.countdown);setText('countdown',num>0?num:'GO!');if(num!==state.lastBeep&&num>0){state.lastBeep=num;tone(440,.06)}if(state.countdown<=0)beginPlay();return}
  if(mode!=='playing')return;
@@ -207,11 +255,13 @@ function update(dt){
  for(const f of state.fans){
   f.age+=dt;
   if(f.status==='exiting'){f.exit+=dt;f.x+=(f.x<320?-330:330)*dt;if(f.exit>.85)f.status='gone';continue}
+  if(f.normal){updateCrowdFan(f,dt);continue}
   if(!f.normal&&f.type===5){const p=clamp(f.age/f.life,0,1);f.x=f.startX+(f.targetX-f.startX)*p;f.y=f.startY+(f.targetY-f.startY)*p}
   if(!f.normal&&f.status==='active'&&f.age>=f.life)missFan(f);
  }
 
  state.fans=state.fans.filter(f=>f.status!=='gone');
+ updateCrowd(dt);
  state.queue=state.queue.filter(id=>state.fans.some(f=>f.id===id&&f.status==='active'));
  const target=state.fans.find(f=>f.id===state.queue[0]);if(target){const tx=target.x,ty=target.y+13,dx=tx-state.guard.x,dy=ty-state.guard.y,dist=Math.hypot(dx,dy),step=1100*dt;if(dist<=step+8){state.guard.x=tx;state.guard.y=ty;eject(target)}else{state.guard.x+=dx/dist*step;state.guard.y+=dy/dist*step}}
  if(state.combo&&state.elapsed-state.lastEject>5)state.combo=0;
@@ -232,7 +282,10 @@ function drawVenue(c,w,h,time,venueIndex=chosenVenue){
  c.fillStyle='#04081520';c.fillRect(0,h*.35,w,h*.65);
  for(let i=0;i<5;i++){const presence=idolPresence(i);if(!presence.visible)continue;const p=idolPose(venueIndex,i,w,h);p.x+=presence.offset*w/640;c.save();c.globalAlpha=presence.alpha;c.fillStyle='#08101b70';c.beginPath();c.ellipse(p.x,p.y+1,10*h/720,3*h/720,0,0,Math.PI*2);c.fill();const sway=reduced?0:Math.sin(time*5+i*.8)*1.5;drawSprite(c,7,p.x+sway,p.y,p.height,i%2===1,.98*presence.alpha);c.restore()}
  const cc=['#ff83a8','#a4e5ff','#ffd971','#c5fa5f','#d8acff'];
- for(let row=0;row<2;row++)for(let col=0;col<13;col++){const x=w*(.11+col*.065),y=(frontRowY(venueIndex)+76+row*30)*h/720;drawSprite(c,col%2?2:3,x,y,22,false,.32);if(Math.sin(time*4+col+row)>.3){c.fillStyle=cc[col%5]+'88';c.fillRect(x+4,y-21,2,7)}}
+ for(let row=0;row<2;row++)for(let col=0;col<13;col++){
+  const beat=reduced?0:Math.sin(time*(state?.rush?7:4)+col*.5+row),x=w*(.11+col*.065)+(reduced?0:beat*1.5),y=(frontRowY(venueIndex)+76+row*30)*h/720-Math.max(0,beat)*2;
+  drawSprite(c,col%2?2:3,x,y,22,false,.4);c.fillStyle=cc[col%5]+'aa';c.save();c.translate(x+4,y-18);c.rotate(beat*.35);c.fillRect(-1,-7,2,7);c.restore();
+ }
 }
 // A synchronized approach / body contact / recoil cycle, shared by both mosh participants.
 function moshPose(f,time){const p=((time*1.25+f.phase) % 1+1)%1;let gap;if(p<.38)gap=42-26*p/.38;else if(p<.51)gap=16;else gap=16+26*(p-.51)/.49;return {gap,impact:p>=.38&&p<.55,lean:gap<22?.18:.08}}
@@ -252,7 +305,26 @@ function drawConnection(c,f,time){
  for(let i=0;i<4;i++){let p=reduced?(i+.5)/4:(time*.5+i*.25)%1;const fromFan=i%2===0,q=fromFan?p:1-p;const x=fx+(ix-fx)*q+(fromFan?-1:1)*Math.sin(q*Math.PI)*25,y=fy+(iy-fy)*q;pixelText(c,'♥',x,y,fromFan?'#ff79b6':'#ffd86e',21)}
  pixelText(c,'♥',ix,iy-25,'#ff9dc7',24);pixelText(c,'相互♥',fx+38,fy+12,'#ffd86e',14);c.restore();
 }
+function drawNormalFan(c,f,time){
+ const walking=f.crowdPhase!=='watching',speed=walking?11:state.rush?7:4;
+ const beat=reduced?0:Math.sin(time*speed+f.phase),bob=walking?Math.abs(beat)*2:f.cheer===0?Math.max(0,beat)*(state.rush?5:3):0;
+ c.save();c.globalAlpha=.88*clamp((f.x+32)/65,0,1)*clamp((672-f.x)/65,0,1);
+ c.fillStyle='#0004';c.beginPath();c.ellipse(f.x,f.y+1,22,6,0,0,Math.PI*2);c.fill();
+ c.translate(f.x,f.y-bob);c.rotate(beat*(walking?.035:f.cheer===1?.055:.025));
+ drawSprite(c,f.sprite,0,0,72,false,1,1+beat*.012);
+ // A held penlight moves with the hand/body; no flying projectile or orange glare.
+ c.strokeStyle=f.light;c.lineWidth=2;
+ if(!walking){c.beginPath();c.arc(-13,-65,8,-2.6+beat*.2,-.8+beat*.2);c.stroke()}
+ c.restore();
+ if(!walking&&Math.sin(time*.7+f.phase)>.985)pixelText(c,['推し最高！','ハイ！ ハイ！','楽しい！'][f.cheer],f.x,f.y-82,'#bed4dc',12);
+}
+function drawFanLabel(c,f){
+ const t=TYPES[f.type],queued=state.queue.includes(f.id),{x,y,width}=fanLabel(f);
+ c.fillStyle=queued?'#c5fa5f':f.type===6?'#ffd86e':'#de4164';c.fillRect(x-width/2,y-21,width,27);pixelText(c,`${f.key} ${t.short}${f.type===1?' ×2':f.type===6?' ♥'+Math.max(0,Math.ceil(f.life-f.age))+'秒':''}`,x,y-1,queued||f.type===6?'#0b2012':'#fff',16);
+ const rem=1-f.age/f.life;c.fillStyle='#120d19';c.fillRect(x-width/2,y+8,width,4);c.fillStyle=rem<.3?'#ff6788':t.color;c.fillRect(x-width/2,y+8,width*rem,4);
+}
 function drawFan(c,f,time){
+ if(f.normal){drawNormalFan(c,f,time);return}
  const normal=f.normal,t=TYPES[f.type],queued=state.queue.includes(f.id);const sway=reduced||f.type===1?0:Math.sin(time*5+f.phase)*2;let x=f.x+sway,y=f.y;
  const alpha=f.status==='exiting'?Math.max(0,1-f.exit*.9):normal?.82:1;
  c.save();c.globalAlpha=alpha;c.fillStyle='#0005';c.beginPath();c.ellipse(x,y+1,f.type===1&&!normal?63:25,7,0,0,Math.PI*2);c.fill();
@@ -272,11 +344,6 @@ function drawFan(c,f,time){
   c.save();c.translate(x-19,y-57);const sticks=f.type===2?5:1;
   for(let i=0;i<sticks;i++){c.save();c.rotate((i-(sticks-1)/2)*.3);c.fillStyle=f.type===2?'#ffca41':'#ff80bc';c.fillRect(-3,-23,6,24);c.fillStyle='#fff4ce';c.fillRect(-1,-22,2,19);c.restore()}c.restore();
  }
- if(!normal&&f.status==='active'){
-   const labelY=fanLabel(f).y,labelWidth=fanLabel(f).width;c.fillStyle=queued?'#c5fa5f':f.type===6?'#ffd86e':'#de4164';c.fillRect(x-labelWidth/2,labelY-21,labelWidth,27);pixelText(c,`${f.key} ${t.short}${f.type===1?' ×2':f.type===6?' ♥'+Math.max(0,Math.ceil(f.life-f.age))+'秒':''}`,x,labelY-1,queued||f.type===6?'#0b2012':'#fff',16);
-   const rem=1-f.age/f.life;c.fillStyle='#120d19';c.fillRect(x-labelWidth/2,labelY+8,labelWidth,4);c.fillStyle=rem<.3?'#ff6788':t.color;c.fillRect(x-labelWidth/2,labelY+8,labelWidth*rem,4);
- }
- if(normal&&f.status==='active'&&Math.sin(time*.7+f.phase)>.98)pixelText(c,'推し最高！',x,y-79,'#bed4dc',12);
  c.restore();
 }
 function drawGame(){
@@ -288,6 +355,8 @@ function drawGame(){
  const sorted=[...state.fans].sort((a,b)=>a.y-b.y);let guardDrawn=false;
  const guard=()=>{ctx.strokeStyle='#c5fa5f';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(state.guard.x,state.guard.y+2,26,9,0,0,Math.PI*2);ctx.stroke();drawSprite(ctx,0,state.guard.x,state.guard.y,94,false,1,state.queue.length&&!reduced?1+Math.sin(time*20)*.04:1);pixelText(ctx,'YOU',state.guard.x,state.guard.y-99,'#c5fa5f',13)};
  for(const f of sorted){if(!guardDrawn&&f.y>state.guard.y){guard();guardDrawn=true}drawFan(ctx,f,time)}if(!guardDrawn)guard();
+ // Moving audience members must never cover an offense marker.
+ for(const f of sorted)if(!f.normal&&f.status==='active')drawFanLabel(ctx,f);
  if(state.pulse>0){ctx.strokeStyle=`rgba(197,250,95,${state.pulse})`;ctx.lineWidth=8;ctx.beginPath();ctx.arc(state.guard.x,state.guard.y,(1-state.pulse)*1100,0,Math.PI*2);ctx.stroke();drawSprite(ctx,1,90+(1-state.pulse)*400,650,100);drawSprite(ctx,1,550-(1-state.pulse)*400,425,94)}
  for(const e of state.effects){ctx.save();ctx.globalAlpha=Math.min(1,e.life/e.max*2);if(e.particle){ctx.fillStyle=e.color;ctx.fillRect(e.x,e.y,5,5)}else pixelText(ctx,e.text,e.x,e.y,e.color,22);ctx.restore()}
 }
@@ -302,7 +371,7 @@ canvas.addEventListener('pointerdown',e=>{
  if(mode!=='playing')return;e.preventDefault();const r=canvas.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*640,y=(e.clientY-r.top)/r.height*720;
  const labelHit=state.fans.find(f=>{const box=fanLabel(f);return !f.normal&&f.status==='active'&&Math.abs(x-box.x)<=box.width/2+3&&y>=box.y-24&&y<=box.y+12});
  if(labelHit){chooseFan(labelHit);return}
- const candidates=state.fans.filter(f=>f.status==='active'&&Math.abs(x-f.x)<=(!f.normal&&f.type===1?76:55)&&y>=f.y-(f.normal?75:f.type===0?123:86)&&y<=f.y+17).sort((a,b)=>{const da=Math.hypot(x-a.x,(y-(a.y-42))*.65),db=Math.hypot(x-b.x,(y-(b.y-42))*.65);return da-db});
+ const candidates=state.fans.filter(f=>f.status==='active'&&Math.abs(x-f.x)<=(!f.normal&&f.type===1?76:55)&&y>=f.y-(f.normal?75:f.type===0?123:86)&&y<=f.y+17).sort((a,b)=>{const da=Math.hypot(x-a.x,(y-(a.y-42))*.65),db=Math.hypot(x-b.x,(y-(b.y-42))*.65);return Number(a.normal)-Number(b.normal)||da-db});
  if(candidates[0])chooseFan(candidates[0]);
 });
 document.addEventListener('keydown',e=>{
