@@ -16,6 +16,14 @@ Node.js 22以上で `npm run dev`。表示されたURLをブラウザで開く�
 - `npm run build`: ネイティブ組み込み用www/を生成
 - ネイティブ依存の導入は `npm ci`。`npm run build:android:debug` で同期・照合・デバッグビルド。BUILD_ANDROID_IOS.mdを参照。
 
+### 隠しアイドルの開発用プレビュー（v1.6）
+
+`npm run dev:animal` を起動し、表示された `http://127.0.0.1:8080/?unlock=animal` を開くと「アニマルプラネット」を選択できる。パラメータを外すと正規の達成状況に戻る。仮解禁は保存されず、通常アイドルで実際に獲得したS評価だけが従来どおり保存される。
+
+通常の `npm run dev`、GitHub Pages等の静的Web公開、`npm run build` で生成する `www/`、Android/iOSアプリでは、このURLパラメータは無効。通常4アイドルすべてのS評価が必要。専用サーバーは明示的な `--debug-unlock` 指定時だけHTTP応答内のJavaScriptを変更し、ソースやビルド出力を書き換えない。ホスト名や環境変数による自動解禁は行わない。
+
+開発用サーバーは配信用に使わず、アプリは通常どおり `sync:android` / `sync:ios` で `www/` を同梱する。
+
 ## 引き継ぎ資料
 1. CLAUDE.md — Claude Codeの開始点
 2. PROJECT_OVERVIEW.md — 概要・設計

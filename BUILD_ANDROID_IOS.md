@@ -14,6 +14,14 @@ iOSプロジェクトは2026-10-11にmacOSで生成し、Simulator向け署名�
 - ソースはルートのHTML/CSS/JSと画像。`www/` と `android/app/src/main/assets/` のコピーを直接編集・コミットしない。
 - `server.url` は設定せず、Webコンテンツをアプリに同梱する。
 
+### 隠しアイドルの解禁と検証用プレビュー（v1.6）
+
+`npm run build` の `www/game.js` は検証用解禁を無効にしたソースをそのままコピーする。Android/iOSのDebug・Releaseとも同じ `www/` を使用し、`?unlock=animal` だけでは解禁できない（WebViewの `localhost` も例外にしない）。`sync:android` / `sync:ios` は毎回このビルドを実行する。
+
+開発時の表示・動作確認は `npm run dev:animal` → `http://127.0.0.1:8080/?unlock=animal`。専用サーバーがHTTP応答だけに検証機能を付与し、ソース・`www/`・ネイティブ同梱物は変更しない。通常の `npm run dev` ではURLを付けても解禁しない。アプリをこの開発サーバーへ接続するための `server.url` は追加しない。
+
+`npm test` は通常4組のS評価・保存・再起動後の維持に加え、公開用ソースと生成した `www/game.js` をWeb/Android/iOS相当のURLで実行し、URLによる迂回を回帰検証する。
+
 ## Android: 既存プロジェクトをビルド
 
 Android Studio 2025.2.1以上、**JDK 21**、Android SDK Platform 36 / Build Tools 35.0.0 / Platform Toolsを用意する。

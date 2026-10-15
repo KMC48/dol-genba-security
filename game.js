@@ -10,7 +10,7 @@ const GROUPS=[
  {name:'爆音シュガー',tag:'モッシュ・リフト多発',color:'#ff889a',weights:[25,35,10,8,7,15],line:'沸くのはOK！ 押すのはNG！',brief:'モッシュとリフトに警戒。荒れるフロアを駆け抜けろ。',voices:['肩車席は販売してません！','フロアが揺れる。人まで飛ぶな！','その熱量、コールに回して！']},
  {name:'放課後ルミナリンク',tag:'爆光サイリウム多発',color:'#ffcb7a',weights:[8,8,47,12,10,15],line:'光量で愛を証明しない！',brief:'過剰な光害に警戒。推しより眩しいオタクを見つけろ。',voices:['そこだけ昼公演になってる！','推しより目立つな、その光！','その光量、照明さんも二度見。']},
  {name:'純情アンコール',tag:'不当な最前管理多発',color:'#d8acff',weights:[12,8,8,10,47,15],line:'最前列は私有地じゃない！',brief:'不当な最前管理に警戒。勝手な場所取りから最前列を守れ。',voices:['その仕切り、誰の許可？','整理番号より強い権力、ありません！','そこ、あなたの指定席ではありません。']},
- // Hidden lineup: appears after S-rank clears on all four regular lineups (or ?unlock=animal for testing).
+ // Hidden lineup: appears after S-rank clears on all four regular lineups.
  {name:'アニマルプラネット',tag:'現場はまるで動物園状態',color:'#9be56d',hidden:true,spawnRate:3.6,weights:[17,17,17,17,17,15],line:'ここはライブ会場。動物園じゃない！',brief:'現場はまるで動物園状態！ あらゆる厄介オタクが他の現場の3倍の勢いで押し寄せ、所構わず暴れ回る。檻はない。頼れるのは君の指先だけだ。',voices:['ここは動物園じゃない、ライブ会場だ！','檻がない！ 警備で囲め！','野生の厄介、群れで出現！']}
 ];
 const TYPES=[
@@ -59,7 +59,9 @@ if(!bests||typeof bests!=='object'||Array.isArray(bests))bests={};
 // Regular lineups cleared with rank S. Unlocks the hidden lineup once all are present.
 const S_CLEAR_KEY='dol-genba-s-clears-v1';
 let sClears=[];try{const saved=JSON.parse(localStorage.getItem(S_CLEAR_KEY)||'[]');if(Array.isArray(saved))sClears=saved.filter(Number.isInteger)}catch{}
-const DEBUG_UNLOCK=/[?&]unlock=animal(?:&|$)/.test(typeof location!=='undefined'?location.search:'');
+// Release default for static Web and bundled native apps. Only serve.mjs --debug-unlock
+// replaces this declaration in its HTTP response; it never modifies this source file.
+const DEBUG_UNLOCK=false;
 const REGULAR_GROUPS=GROUPS.map((g,i)=>i).filter(i=>!GROUPS[i].hidden);
 const hiddenUnlocked=()=>DEBUG_UNLOCK||REGULAR_GROUPS.every(i=>sClears.includes(i));
 const rand=(a,b)=>a+Math.random()*(b-a),clamp=(n,a,b)=>Math.min(b,Math.max(a,n));

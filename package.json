@@ -7,6 +7,7 @@
   },
   "scripts": {
     "dev": "node serve.mjs",
+    "dev:animal": "node serve.mjs --debug-unlock",
     "check": "node --check game.js",
     "test": "node test-game.cjs",
     "build": "node build.mjs",
