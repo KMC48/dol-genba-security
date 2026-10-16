@@ -109,7 +109,7 @@ async function load({records, storage, audio='supported', storageBlocked=false, 
     flush:()=>new Promise(resolve=>setImmediate(resolve)),
     visibility(hidden){document.hidden=hidden;document.dispatch('visibilitychange');},
     key:(key,init={})=>document.dispatch('keydown',{key,code:key===' '?'Space':key,repeat:false,...init}),
-    tick(ms){for(let passed=0;passed<ms;passed+=50){now+=Math.min(50,ms-passed);const callback=nextFrame;nextFrame=null;assert.ok(callback);callback(now);}},
+    tick(ms,frameMs=50){for(let passed=0;passed<ms;passed+=frameMs){now+=Math.min(frameMs,ms-passed);const callback=nextFrame;nextFrame=null;assert.ok(callback);callback(now);}},
   };
 }
 
@@ -377,4 +377,23 @@ test('Web/native build output ignores unlock URLs even after dev preview use',as
     const earned=await load({gameSource:built,url,storage:new Map([[S_CLEAR_KEY,'[0,1,2,3]']])});
     earned.el('titleMute').click();selectAnimal(earned);
   }
+});
+
+// Drive the production requestAnimationFrame callback at low and irregular frame rates.
+test('60-second missions consume real foreground time at low FPS and after stalls',async()=>{
+  for(const frameMs of [100,250,1000,5000]) {
+    const g=await load();start(g,{play:false});g.tick(3050,frameMs);
+    assert.equal(g.state().mode,'playing');
+    g.tick(59000,frameMs);assert.equal(g.state().mode,'playing');
+    assert.ok(g.state().remaining>0&&g.state().remaining<1.1);
+    g.tick(1100,frameMs);assert.equal(g.state().mode,'result');
+    assert.equal(g.state().remaining,0);
+  }
+});
+test('long paused and background intervals do not consume mission time on resume',async()=>{
+  const g=await load();start(g);g.tick(10000,100);
+  g.visibility(true);const remaining=g.state().remaining;
+  g.tick(120000,120000);assert.equal(g.state().remaining,remaining);
+  g.visibility(false);g.el('resumeBtn').click();g.tick(1000,100);
+  assert.ok(Math.abs(g.state().remaining-(remaining-1))<1e-8);
 });

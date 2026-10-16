@@ -394,7 +394,15 @@ function drawPreview(time){
  drawSprite(pctx,0,245,401,115);drawSprite(pctx,1,358,406,116);
  pctx.fillStyle='#e24c72';pctx.fillRect(371,178,65,24);pixelText(pctx,'光害！',404,196,'#fff',16);
 }
-function frame(now){const dt=Math.min(.05,Math.max(0,(now-lastFrame)/1000));lastFrame=now;if(mode!=='menu'&&mode!=='title'){if(mode==='playing'||mode==='countdown')update(dt);drawGame()}requestAnimationFrame(frame)}
+function frame(now){
+ // Consume all foreground time in small simulation steps; low FPS must not extend a mission.
+ let elapsed=Math.max(0,(now-lastFrame)/1000);lastFrame=now;
+ if(mode!=='menu'&&mode!=='title'){
+  while(elapsed>0&&(mode==='playing'||mode==='countdown')){const dt=Math.min(.05,elapsed);update(dt);elapsed-=dt}
+  drawGame();
+ }
+ requestAnimationFrame(frame);
+}
 canvas.addEventListener('pointerdown',e=>{
  if(mode!=='playing')return;e.preventDefault();const r=canvas.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*640,y=(e.clientY-r.top)/r.height*720;
  const labelHit=state.fans.find(f=>{const box=fanLabel(f);return !f.normal&&f.status==='active'&&Math.abs(x-box.x)<=box.width/2+3&&y>=box.y-24&&y<=box.y+12});
