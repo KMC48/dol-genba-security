@@ -52,7 +52,8 @@ class Element {
   getContext() { return new Proxy({}, {get:() => () => {}}); }
 }
 
-async function load({records, storage, audio='supported', storageBlocked=false} = {}) {
+async function load({records, storage, audio='supported', storageBlocked=false, search='',
+  url='https://kmc48.github.io/dol-genba-security/', gameSource=source} = {}) {
   const saved = storage || new Map([['unrelated-setting','keep']]);
   if (records !== undefined) saved.set(SAVE_KEY, records);
   const writes=[];
@@ -91,19 +92,24 @@ async function load({records, storage, audio='supported', storageBlocked=false} 
     localStorage:{getItem(k){if(storageBlocked)throw new Error('blocked');return saved.get(k)??null;},
       setItem(k,v){if(storageBlocked)throw new Error('blocked');writes.push([k,v]);saved.set(k,v);}},
     performance:{now:()=>now}, requestAnimationFrame(fn){nextFrame=fn;},
+    location:new URL(search,url), URLSearchParams,
   });
-  vm.runInContext(source+`\nglobalThis.probe=()=>({mode,audioOn,titleChoice,assetReady,
+  vm.runInContext(gameSource+`\nglobalThis.probe=()=>({mode,audioOn,titleChoice,assetReady,
     score:state?.score,remaining:state?.remaining,chosenVenue,chosenGroup,game:state?JSON.stringify(state):null});`,context,{filename:'game.js'});
   // Let the production Promise.all(image loads) set assetReady, rather than forcing it.
   await new Promise(resolve => setImmediate(resolve));
   assert.equal(context.probe().assetReady, true);
   return {el,document,calls,storage:saved,writes,
+    // Test-only driver uses the real scoring/finish path; never shipped in game.js.
+    finishWith({mistakes=0}={}) {vm.runInContext(`
+      state.fans=[];state.count=1;state.missed=0;state.mistakes=${Number(mistakes)};
+      state.idolDeparture=null;finish();`,context);},
     state:()=>context.probe(),
     back:()=>vm.runInContext(nativeBackScript,context),
     flush:()=>new Promise(resolve=>setImmediate(resolve)),
     visibility(hidden){document.hidden=hidden;document.dispatch('visibilitychange');},
     key:(key,init={})=>document.dispatch('keydown',{key,code:key===' '?'Space':key,repeat:false,...init}),
-    tick(ms){for(let passed=0;passed<ms;passed+=50){now+=Math.min(50,ms-passed);const callback=nextFrame;nextFrame=null;assert.ok(callback);callback(now);}},
+    tick(ms,frameMs=50){for(let passed=0;passed<ms;passed+=frameMs){now+=Math.min(frameMs,ms-passed);const callback=nextFrame;nextFrame=null;assert.ok(callback);callback(now);}},
   };
 }
 
@@ -248,4 +254,146 @@ test('header logo pauses a running mission and returns to title elsewhere',async
   const e=g.el('brandLink').dispatch('click');assert.equal(e.defaultPrevented,true);visible(g,'paused');
   g.el('backBtn').click();await g.flush();visible(g,'menu');
   g.el('brandLink').dispatch('click');visible(g,'title');
+});
+
+const S_CLEAR_KEY='dol-genba-s-clears-v1';
+const releaseURLs=[
+  'https://kmc48.github.io/dol-genba-security/',
+  'http://127.0.0.1:8080/',
+  'https://localhost/', // Android WebView
+  'http://localhost/', // Older/configured Android WebView
+  'capacitor://localhost/', // iOS WebView
+  'file:///android_asset/public/index.html',
+];
+function assertLocked(g) {
+  assert.equal(g.el('groups').children[4].disabled,true);
+  assert.match(g.el('groups').innerHTML,/？？？[\s\S]*全アイドルS評価で出演/);
+  assert.doesNotMatch(g.el('groups').innerHTML,/アニマルプラネット/);
+}
+function selectAnimal(g) {
+  const card=g.el('groups').children[4];assert.equal(card.disabled,false);card.click();
+  assert.equal(g.state().chosenGroup,4);assert.match(g.el('missionBrief').textContent,/動物園状態/);
+}
+function completeMission(g,group,venue=0,result={}) {
+  g.el('venues').children[venue].click();g.el('groups').children[group].click();
+  g.el('startBtn').click();g.tick(3200);g.finishWith(result);
+  assert.equal(g.state().mode,'result');
+}
+
+test('release source ignores unlock URLs on Web, localhost and native origins',async()=>{
+  for(const url of releaseURLs)for(const search of ['', '?unlock=animal', '?other=1&unlock=animal']) {
+    const g=await load({url,search});g.el('titleMute').click();assertLocked(g);
+    assert.deepEqual(g.writes,[]);
+  }
+});
+
+test('regular S clears persist across restarts; only the fourth distinct group unlocks',async()=>{
+  const storage=new Map([['unrelated-setting','keep']]),order=[2,0,3,1];
+  for(let step=0;step<order.length;step++) {
+    const g=await load({storage,search:'?unlock=animal'});g.el('titleMute').click();assertLocked(g);
+    completeMission(g,order[step],step);
+    assert.equal(g.el('rank').textContent,'S');
+    assert.deepEqual(JSON.parse(storage.get(S_CLEAR_KEY)),order.slice(0,step+1));
+    assert.equal(g.el('unlockNote').classList.contains('hidden'),step!==3);
+    // A second completion or repeated S must not duplicate progress or re-announce the unlock.
+    g.finishWith();assert.equal(g.writes.filter(([k])=>k===S_CLEAR_KEY).length,1);
+    g.el('selectBtn').click();await g.flush();
+    completeMission(g,order[step],(step+1)%4);
+    assert.equal(g.writes.filter(([k])=>k===S_CLEAR_KEY).length,1);
+    assert.equal(g.el('unlockNote').classList.contains('hidden'),true);
+  }
+  for(const url of releaseURLs) {
+    const reloaded=await load({storage,url});reloaded.el('titleMute').click();selectAnimal(reloaded);
+    assert.deepEqual(reloaded.writes,[]);
+  }
+  assert.equal(storage.get('unrelated-setting'),'keep');
+});
+
+test('A rank and abandoned missions cannot complete the fourth S clear',async()=>{
+  const storage=new Map([[S_CLEAR_KEY,'[0,1,2]']]);
+  const g=await load({storage});g.el('titleMute').click();
+  completeMission(g,3,2,{mistakes:1});assert.equal(g.el('rank').textContent,'A');
+  assert.equal(storage.get(S_CLEAR_KEY),'[0,1,2]');
+  assert.equal(g.el('unlockNote').classList.contains('hidden'),true);
+  g.el('selectBtn').click();await g.flush();assertLocked(g);
+  g.el('startBtn').click();g.tick(3200);g.back();g.el('backBtn').click();await g.flush();
+  assert.equal(storage.get(S_CLEAR_KEY),'[0,1,2]');
+  const reloaded=await load({storage,search:'?unlock=animal'});assertLocked(reloaded);
+});
+
+test('missing or corrupt progress and unavailable storage fail closed without crashing',async()=>{
+  for(const saved of ['not json','null','{}','[0,1,2,"3"]','[0,1,2,4]','[0,0,1,2]']) {
+    const g=await load({storage:new Map([[S_CLEAR_KEY,saved]]),search:'?unlock=animal'});
+    g.el('titleMute').click();assertLocked(g);
+  }
+  const blocked=await load({storageBlocked:true,search:'?unlock=animal'});
+  blocked.el('titleMute').click();assertLocked(blocked);completeMission(blocked,0);
+  assert.equal(blocked.el('rank').textContent,'S');
+  assert.deepEqual(blocked.writes,[]);
+  assertLocked(await load({storageBlocked:true,search:'?unlock=animal'}));
+});
+
+test('only an explicitly enabled dev server serves a temporary animal preview',async()=>{
+  const {createGameServer}=await import('./serve.mjs');
+  const {once}=require('node:events');
+  for(const debugUnlock of [false,true]) {
+    const server=createGameServer({debugUnlock});
+    server.listen(0,'127.0.0.1');await once(server,'listening');
+    const url=`http://127.0.0.1:${server.address().port}/`;
+    try {
+      const response=await fetch(url+'game.js?unlock=animal');assert.equal(response.status,200);
+      assert.equal(response.headers.get('cache-control'),'no-store');
+      const gameSource=await response.text();
+      assertLocked(await load({gameSource,url}));
+      assertLocked(await load({gameSource,url,search:'?unlock=other'}));
+      const storage=new Map([[S_CLEAR_KEY,'[0,1,2]']]);
+      const g=await load({gameSource,url,storage,search:'?unlock=animal'});g.el('titleMute').click();
+      if(debugUnlock) {
+        selectAnimal(g);completeMission(g,4);assert.equal(g.el('rank').textContent,'S');
+        assert.equal(storage.get(S_CLEAR_KEY),'[0,1,2]','hidden S cannot fill a regular clear');
+        assertLocked(await load({storage,url,search:'?unlock=animal'}));
+        assertLocked(await load({gameSource,storage,url}));
+      } else {
+        assert.equal(gameSource,source);assertLocked(g);assert.deepEqual(g.writes,[]);
+      }
+      assert.equal(await (await fetch(url+'index.html')).text(),html);
+      assert.equal((await fetch(url+'serve.mjs')).status,404);
+    } finally {
+      await new Promise((resolve,reject)=>server.close(err=>err?reject(err):resolve()));
+    }
+  }
+  assert.equal(fs.readFileSync(path.join(__dirname,'game.js'),'utf8'),source,'dev serving never edits source');
+});
+
+test('Web/native build output ignores unlock URLs even after dev preview use',async()=>{
+  require('node:child_process').execFileSync(process.execPath,['build.mjs'],{cwd:__dirname});
+  const built=fs.readFileSync(path.join(__dirname,'www/game.js'),'utf8');
+  assert.equal(built,source);
+  assert.equal(fs.existsSync(path.join(__dirname,'www/serve.mjs')),false);
+  const config=JSON.parse(fs.readFileSync(path.join(__dirname,'capacitor.config.json'),'utf8'));
+  assert.equal(config.webDir,'www');assert.ok(!config.server?.url);
+  for(const url of releaseURLs) {
+    const g=await load({gameSource:built,url,search:'?unlock=animal'});g.el('titleMute').click();assertLocked(g);
+    const earned=await load({gameSource:built,url,storage:new Map([[S_CLEAR_KEY,'[0,1,2,3]']])});
+    earned.el('titleMute').click();selectAnimal(earned);
+  }
+});
+
+// Drive the production requestAnimationFrame callback at low and irregular frame rates.
+test('60-second missions consume real foreground time at low FPS and after stalls',async()=>{
+  for(const frameMs of [100,250,1000,5000]) {
+    const g=await load();start(g,{play:false});g.tick(3050,frameMs);
+    assert.equal(g.state().mode,'playing');
+    g.tick(59000,frameMs);assert.equal(g.state().mode,'playing');
+    assert.ok(g.state().remaining>0&&g.state().remaining<1.1);
+    g.tick(1100,frameMs);assert.equal(g.state().mode,'result');
+    assert.equal(g.state().remaining,0);
+  }
+});
+test('long paused and background intervals do not consume mission time on resume',async()=>{
+  const g=await load();start(g);g.tick(10000,100);
+  g.visibility(true);const remaining=g.state().remaining;
+  g.tick(120000,120000);assert.equal(g.state().remaining,remaining);
+  g.visibility(false);g.el('resumeBtn').click();g.tick(1000,100);
+  assert.ok(Math.abs(g.state().remaining-(remaining-1))<1e-8);
 });

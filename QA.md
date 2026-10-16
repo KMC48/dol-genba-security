@@ -1,3 +1,23 @@
+# v1.6 最終レビュー / 2026-10-16
+
+- PR #7の解禁分離・保存互換性をレビュー。未解決レビュー指摘なし。
+- 既存の低FPSタイマー遅延を修正。requestAnimationFrameの全経過時間を最大50msのステップで消費し、描画はフレーム毎に一度。ポーズは従来どおり停止。
+- Node.js 24.19.0で `npm run check` / `npm test` / `npm run build`。全16ミッション＋28件の回帰テスト成功。新規検証は10/4/1/0.2FPSの60秒進行、120秒のバックグラウンド待機と再開。
+- 公開サイト検証・マージ後の結果は別の公開記録に記載する。
+
+# v1.6 隠しアイドルの開発用解禁を分離 / 2026-10-15
+
+環境: Linux / Node.js 24.19.0。PR #7の `e942a37c973ac4eaebbd57dc79e98ef6f6abc90c` を基準に検証。
+
+- 公開用 `game.js` は `DEBUG_UNLOCK=false` 固定。`npm run dev:animal` の専用サーバーだけがHTTP応答に検証用URL判定を追加する。ソース・`www/` は変更しない。
+- `npm run check` / `npm test` / `npm run build` 成功。26件のNodeテスト＋全16ミッションPASS。通常4組の完全プレイでS評価を取得でき、アニマルプラネットの出現量も全4会場で通常平均の3倍以上を維持。
+- 公開用ソースと生成した `www/game.js` をWeb公開・127.0.0.1・Android相当のHTTP/HTTPS localhost・iOS相当のcapacitor URL・file URLで実行し、`?unlock=animal` 付きでも未達成ならロックされることを検証。
+- S評価を異なる会場・順番で1組ずつ獲得し、毎回新しいVMへ同じlocalStorageを読み直す。4組目だけで解禁通知、以後の再起動でも選択可能、S重複・finish重複では保存と通知が増えないことを検証。
+- A評価、途中離脱、隠しアイドルのS評価では未達成の通常組を補完しない。破損データ・保存拒否ではクラッシュせず、次の起動で不正に解禁しない。保存拒否時は実績を次回起動へ維持できない。
+- 通常／検証用の実HTTPサーバーから取得したJavaScriptで動作を確認。検証モードとURLパラメータが両方ある時だけ仮解禁。URLを外すか公開版を再起動すると元の達成状況へ戻り、仮解禁と隠しアイドルのSは通常組の保存を変更しない。応答はno-store、ソースは変更なし。
+- `npm ci --ignore-scripts --no-audit --no-fund` / `npm run sync:android` / `npm run verify:android` / `npm run sync:ios` 成功。Androidの同梱19ファイルがソース・wwwと一致。iOS/Androidの同梱game.jsも公開用ソースとバイト一致。
+- この環境ではAndroid APK・iOSネイティブビルド、ブラウザ描画、実機でのアプリ終了・再起動は未実施。上記の再起動は保存領域を引き継いだ新規JavaScript実行環境での回帰検証。
+
 # v1.5 iOS確認・結果画面の修正 / 2026-10-15（Mac）
 
 環境: macOS 26.5.2 / Xcode 26.5 / iOS Simulator 26.5（iPhone 17）/ Node.js 26.8.1。ブランチ `feat/result-faces-live-crowd`（PR #6）。

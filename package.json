@@ -1,12 +1,13 @@
 {
   "name": "dol-genba-security",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "private": true,
   "engines": {
     "node": ">=22"
   },
   "scripts": {
     "dev": "node serve.mjs",
+    "dev:animal": "node serve.mjs --debug-unlock",
     "check": "node --check game.js",
     "test": "node test-game.cjs",
     "build": "node build.mjs",

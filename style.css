@@ -102,3 +102,6 @@ body.on-title .app{max-width:none;padding:0}
 
 /* The result dialog takes focus itself on open so iOS does not scroll to the retry button at the bottom. */
 #resultDialog:focus{outline:none}
+/* Hidden lineup */
+.group-card.is-locked{cursor:not-allowed;opacity:.72;border-style:dashed;--group-color:#5b6670}.group-card.is-locked b{letter-spacing:.2em}.group-card.is-locked small{color:var(--lime)}
+.unlock-note{margin:10px 0 0;padding:8px 10px;border:1px solid #9be56d;color:#9be56d;font-family:var(--pixel);font-size:14px;text-align:center}
