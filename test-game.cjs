@@ -19,6 +19,7 @@ const t=context.test;t.setReady();
 // Manual copy stays explicit; the formula follows the full rank explanation.
 const manualHtml=fs.readFileSync(base+'index.html','utf8');
 assert.match(manualHtml, /id="helpBtn"[^>]*aria-label="現場の守り方"[^>]*>現場の守り方💡<\/button>/);
+assert.match(manualHtml, /id="menuTitleBtn"[\s\S]*?<p class="mission-intro">現場を荒らす厄介なオタクを退場させろ！<\/p>\s*<div class="mission-heading">/);
 assert(manualHtml.includes('<b>S評価は見逃し・誤認ともにゼロの場合に。</b>'));
 assert(manualHtml.includes('条件を満たす最上位のランクになります。<small class="rank-formula">※対応率＝退場人数÷出現人数</small>'));
 // Every venue renders a background and five idols, but no miniature fans.

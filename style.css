@@ -103,6 +103,8 @@ body.on-title .app{max-width:none;padding:0}
 .menu-screen>.mission-heading{border-top:0}
 /* Return-to-title link on mission select */
 .menu-nav{padding-top:14px}.back-link{background:transparent;border:1px solid var(--line);color:var(--lime);font-family:var(--pixel);font-size:14px;min-height:40px;padding:0 14px;cursor:pointer}.back-link:hover,.back-link:focus-visible{border-color:var(--lime)}
+.menu-nav .back-link{font-size:11.2px;min-height:32px;padding-inline:11.2px}
+.mission-intro{margin:24px 0 0;color:var(--lime);font-size:clamp(24px,3vw,36px);font-weight:900;line-height:1.6;overflow-wrap:anywhere}
 
 /* The result dialog takes focus itself on open so iOS does not scroll to the retry button at the bottom. */
 #resultDialog:focus{outline:none}
