@@ -1,3 +1,14 @@
+# 会場の拡大ボタン・縦固定・見出し変更 / 2026-10-18（Mac）
+
+環境: macOS 26.5.2 / Xcode 26.5 / iOS Simulator 26.5（iPad Pro 13-inch (M5)）。ブランチ `feat/tablet-play-size`（PR #9 `fix/manual-label-and-mini-crowd` の上に積んだもの）。
+
+- プレイ画面の会場左上に拡大ボタンを追加（幅761px以上のみ。スマホは会場が既に横幅いっぱいのため非表示）。押すと左右の欄を隠して会場を画面の高さに合わせて拡大、もう一度押すと元の表示に戻る。選択は端末に保存。
+- プレイ画面左の見出しを「現場を荒らす”厄介な違反オタク”に注目！」に変更。
+- 画面の向きを縦に固定: iOS（iPhone縦のみ、iPadは縦・逆さ縦、`UIRequiresFullScreen`）、Android（`screenOrientation="portrait"`）。
+- `npm run check` / `npm test` PASS、`node test-android-back.cjs` 28件 PASS、`npm run verify:android` PASS、iOS Simulator向けビルド成功。
+- iPad Pro 13-inch Simulator: 通常表示（左欄＋会場）→拡大（会場が画面幅の約85%）→元に戻る、を確認。PR #9 の変更（準備画面の大見出し、「現場の守り方」ボタン）も表示されることを確認。
+- 未確認: iPhoneでのボタン非表示の目視、回転操作での縦固定、Android実機。
+
 # A評価以上で隠しアイドル解禁・ドットフォント統一 / 2026-10-18
 
 - 通常4アイドルで会場を問わずA以上を各1回で解禁。A/S達成は新キーに保存し、旧S記録を合算。旧Sキーは保持し、SをAとして偽って保存しない。旧版のA実績は未保存のため遡及不可。
