@@ -1,4 +1,4 @@
-package jp.kmccreativelab.dolgenba;
+package jp.kmccreativelab.idoldefense;
 
 import android.os.Bundle;
 import android.os.SystemClock;

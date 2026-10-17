@@ -34,7 +34,7 @@
 ## 現在できていること／これから行うこと
 Webゲーム・14点の画像・回帰テスト・www生成・Capacitorひな形を用意済み。
 android/iosプロジェクト、package-lock.json、APK/AAB/IPA、署名・ストア申請は未作成/未実施。
-仮appIdはjp.kmccreativelab.dolgenba。ネイティブ登録前に所有者と確定。
+appId（Bundle ID）は jp.kmccreativelab.idoldefense で確定（2026-10-17）。App Store Connect登録後は変更不可。
 実機のライフサイクル/音声/safe-area/低FPS時計/オフライン字体を重点検証する。
 
 ## 2026-10-14 修正版

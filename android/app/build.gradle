@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace = "jp.kmccreativelab.dolgenba"
+    namespace = "jp.kmccreativelab.idoldefense"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "jp.kmccreativelab.dolgenba"
+        applicationId "jp.kmccreativelab.idoldefense"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
