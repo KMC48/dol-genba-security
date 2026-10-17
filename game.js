@@ -306,14 +306,9 @@ function pixelText(c,text,x,y,color='#fff',size=18,align='center'){c.font=`bold 
 function drawVenue(c,w,h,time,venueIndex=chosenVenue){
  c.imageSmoothingEnabled=false;c.fillStyle='#111722';c.fillRect(0,0,w,h);
  if(venues.complete&&venues.naturalWidth){const tile=venues.width/2;c.drawImage(venues,(venueIndex%2)*tile,Math.floor(venueIndex/2)*tile,tile,tile,0,0,w,h)}
- const layout=STAGE_LAYOUT[venueIndex];
  c.fillStyle='#04081520';c.fillRect(0,h*.35,w,h*.65);
  for(let i=0;i<5;i++){const presence=idolPresence(i);if(!presence.visible)continue;const p=idolPose(venueIndex,i,w,h);p.x+=presence.offset*w/640;c.save();c.globalAlpha=presence.alpha;c.fillStyle='#08101b70';c.beginPath();c.ellipse(p.x,p.y+1,10*h/720,3*h/720,0,0,Math.PI*2);c.fill();const sway=reduced?0:Math.sin(time*5+i*.8)*1.5;if(GROUPS[chosenGroup].hidden){const sprite=14+i;drawSprite(c,sprite,p.x+sway,p.y,p.height*ANIMAL_IDOL_SPRITES[sprite].crop[3]/ANIMAL_IDOL_BODY,false,.98*presence.alpha)}else drawSprite(c,7,p.x+sway,p.y,p.height,i%2===1,.98*presence.alpha);c.restore()}
- const cc=['#ff83a8','#a4e5ff','#ffd971','#c5fa5f','#d8acff'];
- for(let row=0;row<2;row++)for(let col=0;col<13;col++){
-  const beat=reduced?0:Math.sin(time*(state?.rush?7:4)+col*.5+row),x=w*(.11+col*.065)+(reduced?0:beat*1.5),y=(frontRowY(venueIndex)+76+row*30)*h/720-Math.max(0,beat)*2;
-  drawSprite(c,col%2?2:3,x,y,22,false,.4);c.fillStyle=cc[col%5]+'aa';c.save();c.translate(x+4,y-18);c.rotate(beat*.35);c.fillRect(-1,-7,2,7);c.restore();
- }
+ // Audience members are drawn only by drawFan; no decorative miniature crowd.
 }
 // A synchronized approach / body contact / recoil cycle, shared by both mosh participants.
 function moshPose(f,time){const p=((time*1.25+f.phase) % 1+1)%1;let gap;if(p<.38)gap=42-26*p/.38;else if(p<.51)gap=16;else gap=16+26*(p-.51)/.49;return {gap,impact:p>=.38&&p<.55,lean:gap<22?.18:.08}}
