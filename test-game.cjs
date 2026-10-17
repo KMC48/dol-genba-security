@@ -19,7 +19,10 @@ const t=context.test;t.setReady();
 // Manual copy stays explicit; the formula follows the full rank explanation.
 const manualHtml=fs.readFileSync(base+'index.html','utf8');
 assert.match(manualHtml, /id="helpBtn"[^>]*aria-label="現場の守り方"[^>]*>現場の守り方💡<\/button>/);
-assert.match(manualHtml, /id="menuTitleBtn"[\s\S]*?<p class="mission-intro">現場を荒らす厄介なオタクを退場させろ！<\/p>\s*<div class="mission-heading">/);
+assert.match(manualHtml, /id="menuTitleBtn"[\s\S]*?<p class="mission-intro">現場を荒らす厄介なオタクを<br><span>退場させろ！<\/span><\/p>\s*<div class="mission-heading">/);
+const uiCss=fs.readFileSync(base+'style.css','utf8');
+assert(!uiCss.includes('Noto Sans JP')&&!uiCss.includes('Noto+Sans+JP'),'UI uses one pixel font');
+for(const declaration of uiCss.matchAll(/font(?:-family)?:([^;}]+)/g))assert(declaration[1]==='inherit'||declaration[1].includes('var(--pixel)'),`unexpected font: ${declaration[0]}`);
 assert(manualHtml.includes('<b>S評価は見逃し・誤認ともにゼロの場合に。</b>'));
 assert(manualHtml.includes('条件を満たす最上位のランクになります。<small class="rank-formula">※対応率＝退場人数÷出現人数</small>'));
 // Every venue renders a background and five idols, but no miniature fans.
@@ -45,8 +48,8 @@ t.pause();const elapsed=s.elapsed;t.update(2);assert.equal(s.elapsed,elapsed);t.
 s.charge=100;for(let i=0;i<4;i++)t.spawnFan(false);const before=s.count,targets=s.fans.filter(f=>!f.normal&&f.status==='active').reduce((n,f)=>n+(f.type===1?2:1),0),normals=s.fans.filter(f=>f.normal).length;t.special();assert.equal(s.count,before+targets);assert.equal(s.charge,0);assert.equal(s.fans.filter(f=>f.normal&&f.status==='active').length,normals);
 for(let i=0;i<1200&&t.getMode()==='playing';i++)t.update(.05);assert.equal(t.getMode(),'result');assert.equal(s.remaining,0);assert(getEl('resultDialog').open);assert(storage['nexus-genba-records-v1']);
 t.startGame();assert.equal(t.getState().count,0);assert.equal(t.getState().remaining,60);t.goMenu();assert.equal(t.getMode(),'menu');
-// Hidden lineup stays locked ("？？？") until every regular lineup has an S clear.
-assert(getEl('groups').innerHTML.includes('？？？')&&getEl('groups').innerHTML.includes('全アイドルS評価で出演'));
+// Hidden lineup stays locked ("？？？") until every regular lineup has an A-or-S clear.
+assert(getEl('groups').innerHTML.includes('？？？')&&getEl('groups').innerHTML.includes('全アイドルA評価以上で出演'));
 assert(!getEl('groups').innerHTML.includes('アニマルプラネット'));
 const bottomNote=fs.readFileSync(base+'index.html','utf8');assert(bottomNote.includes('違反者はタップで退場。善良なオタクを退場させてはならない。'));assert(!bottomNote.includes('架空の警備会社・アイドルによるフィクション'));assert(bottomNote.includes('退場させたオタク一覧'));
 const runs=[];

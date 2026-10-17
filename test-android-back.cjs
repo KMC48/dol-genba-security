@@ -101,8 +101,8 @@ async function load({records, storage, audio='supported', storageBlocked=false, 
   assert.equal(context.probe().assetReady, true);
   return {el,document,calls,storage:saved,writes,
     // Test-only driver uses the real scoring/finish path; never shipped in game.js.
-    finishWith({mistakes=0}={}) {vm.runInContext(`
-      state.fans=[];state.count=1;state.missed=0;state.mistakes=${Number(mistakes)};
+    finishWith({mistakes=0,count=1,missed=0}={}) {vm.runInContext(`
+      state.fans=[];state.count=${Number(count)};state.missed=${Number(missed)};state.mistakes=${Number(mistakes)};
       state.idolDeparture=null;finish();`,context);},
     state:()=>context.probe(),
     back:()=>vm.runInContext(nativeBackScript,context),
@@ -257,6 +257,7 @@ test('header logo pauses a running mission and returns to title elsewhere',async
 });
 
 const S_CLEAR_KEY='dol-genba-s-clears-v1';
+const QUALIFYING_CLEAR_KEY='dol-genba-a-or-s-clears-v1';
 const releaseURLs=[
   'https://kmc48.github.io/dol-genba-security/',
   'http://127.0.0.1:8080/',
@@ -267,7 +268,7 @@ const releaseURLs=[
 ];
 function assertLocked(g) {
   assert.equal(g.el('groups').children[4].disabled,true);
-  assert.match(g.el('groups').innerHTML,/？？？[\s\S]*全アイドルS評価で出演/);
+  assert.match(g.el('groups').innerHTML,/？？？[\s\S]*全アイドルA評価以上で出演/);
   assert.doesNotMatch(g.el('groups').innerHTML,/アニマルプラネット/);
 }
 function selectAnimal(g) {
@@ -287,19 +288,20 @@ test('release source ignores unlock URLs on Web, localhost and native origins',a
   }
 });
 
-test('regular S clears persist across restarts; only the fourth distinct group unlocks',async()=>{
+test('all-A, all-S and mixed clears persist; only the fourth distinct group unlocks',async()=>{
+ for(const ranks of [['A','A','A','A'],['S','S','S','S'],['A','S','A','S']]) {
   const storage=new Map([['unrelated-setting','keep']]),order=[2,0,3,1];
   for(let step=0;step<order.length;step++) {
     const g=await load({storage,search:'?unlock=animal'});g.el('titleMute').click();assertLocked(g);
-    completeMission(g,order[step],step);
-    assert.equal(g.el('rank').textContent,'S');
-    assert.deepEqual(JSON.parse(storage.get(S_CLEAR_KEY)),order.slice(0,step+1));
+    completeMission(g,order[step],step,ranks[step]==='A'?{count:9,missed:1,mistakes:2}:{});
+    assert.equal(g.el('rank').textContent,ranks[step]);
+    assert.deepEqual(JSON.parse(storage.get(QUALIFYING_CLEAR_KEY)),order.slice(0,step+1));
     assert.equal(g.el('unlockNote').classList.contains('hidden'),step!==3);
     // A second completion or repeated S must not duplicate progress or re-announce the unlock.
-    g.finishWith();assert.equal(g.writes.filter(([k])=>k===S_CLEAR_KEY).length,1);
+    g.finishWith();assert.equal(g.writes.filter(([k])=>k===QUALIFYING_CLEAR_KEY).length,1);
     g.el('selectBtn').click();await g.flush();
     completeMission(g,order[step],(step+1)%4);
-    assert.equal(g.writes.filter(([k])=>k===S_CLEAR_KEY).length,1);
+    assert.equal(g.writes.filter(([k])=>k===QUALIFYING_CLEAR_KEY).length,1);
     assert.equal(g.el('unlockNote').classList.contains('hidden'),true);
   }
   for(const url of releaseURLs) {
@@ -307,23 +309,42 @@ test('regular S clears persist across restarts; only the fourth distinct group u
     assert.deepEqual(reloaded.writes,[]);
   }
   assert.equal(storage.get('unrelated-setting'),'keep');
+ }
 });
 
-test('A rank and abandoned missions cannot complete the fourth S clear',async()=>{
+test('B/C/D ranks and abandoned missions cannot complete the fourth qualifying clear',async()=>{
   const storage=new Map([[S_CLEAR_KEY,'[0,1,2]']]);
   const g=await load({storage});g.el('titleMute').click();
-  completeMission(g,3,2,{mistakes:1});assert.equal(g.el('rank').textContent,'A');
+ for(const [mistakes,rank] of [[3,'B'],[6,'C'],[10,'D']]) {
+  completeMission(g,3,2,{mistakes});assert.equal(g.el('rank').textContent,rank);
   assert.equal(storage.get(S_CLEAR_KEY),'[0,1,2]');
+  assert.equal(storage.has(QUALIFYING_CLEAR_KEY),false);
   assert.equal(g.el('unlockNote').classList.contains('hidden'),true);
   g.el('selectBtn').click();await g.flush();assertLocked(g);
+ }
   g.el('startBtn').click();g.tick(3200);g.back();g.el('backBtn').click();await g.flush();
   assert.equal(storage.get(S_CLEAR_KEY),'[0,1,2]');
   const reloaded=await load({storage,search:'?unlock=animal'});assertLocked(reloaded);
 });
 
+test('legacy S progress merges with new A/S progress without deleting or inventing achievements',async()=>{
+  const storage=new Map([[S_CLEAR_KEY,'[0,2]'],[QUALIFYING_CLEAR_KEY,'[1]']]);
+  const g=await load({storage});g.el('titleMute').click();assertLocked(g);
+  completeMission(g,3,3,{mistakes:1});assert.equal(g.el('rank').textContent,'A');
+  assert.equal(storage.get(S_CLEAR_KEY),'[0,2]');
+  assert.deepEqual(JSON.parse(storage.get(QUALIFYING_CLEAR_KEY)),[0,2,1,3]);
+  assert.equal(g.el('unlockNote').classList.contains('hidden'),false);
+  for(const saved of [new Map([[S_CLEAR_KEY,'[0,1,2,3]']]),new Map([[S_CLEAR_KEY,'[0,1,2,3]'],[QUALIFYING_CLEAR_KEY,'broken']]),new Map([[S_CLEAR_KEY,'broken'],[QUALIFYING_CLEAR_KEY,'[0,1,2,3]']])]) {
+    const reloaded=await load({storage:saved});reloaded.el('titleMute').click();selectAnimal(reloaded);assert.deepEqual(reloaded.writes,[]);
+  }
+  // Historic best scores have no rank/miss data; they must not be guessed into A clears.
+  const scoreOnly=await load({records:JSON.stringify(Object.fromEntries([0,1,2,3].map(i=>['0-'+i,{count:999,score:999999}])))});
+  scoreOnly.el('titleMute').click();assertLocked(scoreOnly);
+});
+
 test('missing or corrupt progress and unavailable storage fail closed without crashing',async()=>{
-  for(const saved of ['not json','null','{}','[0,1,2,"3"]','[0,1,2,4]','[0,0,1,2]']) {
-    const g=await load({storage:new Map([[S_CLEAR_KEY,saved]]),search:'?unlock=animal'});
+  for(const key of [S_CLEAR_KEY,QUALIFYING_CLEAR_KEY])for(const saved of ['not json','null','{}','[0,1,2,"3"]','[0,1,2,4]','[0,0,1,2]']) {
+    const g=await load({storage:new Map([[key,saved]]),search:'?unlock=animal'});
     g.el('titleMute').click();assertLocked(g);
   }
   const blocked=await load({storageBlocked:true,search:'?unlock=animal'});
@@ -351,6 +372,7 @@ test('only an explicitly enabled dev server serves a temporary animal preview',a
       if(debugUnlock) {
         selectAnimal(g);completeMission(g,4);assert.equal(g.el('rank').textContent,'S');
         assert.equal(storage.get(S_CLEAR_KEY),'[0,1,2]','hidden S cannot fill a regular clear');
+        assert.equal(storage.has(QUALIFYING_CLEAR_KEY),false,'preview play does not save a regular A/S clear');
         assertLocked(await load({storage,url,search:'?unlock=animal'}));
         assertLocked(await load({gameSource,storage,url}));
       } else {
