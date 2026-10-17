@@ -20,7 +20,7 @@ iOSプロジェクトは2026-10-11にmacOSで生成し、Simulator向け署名�
 
 開発時の表示・動作確認は `npm run dev:animal` → `http://127.0.0.1:8080/?unlock=animal`。専用サーバーがHTTP応答だけに検証機能を付与し、ソース・`www/`・ネイティブ同梱物は変更しない。通常の `npm run dev` ではURLを付けても解禁しない。アプリをこの開発サーバーへ接続するための `server.url` は追加しない。
 
-`npm test` は通常4組のS評価・保存・再起動後の維持に加え、公開用ソースと生成した `www/game.js` をWeb/Android/iOS相当のURLで実行し、URLによる迂回を回帰検証する。
+`npm test` は通常4組のA評価以上・保存・再起動後の維持に加え、公開用ソースと生成した `www/game.js` をWeb/Android/iOS相当のURLで実行し、URLによる迂回を回帰検証する。
 
 ## Android: 既存プロジェクトをビルド
 

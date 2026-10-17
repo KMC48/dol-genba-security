@@ -56,14 +56,17 @@ let audioOn=false,audioCtx=null,musicBeat=0,musicClock=0;
 const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 let bests={};try{bests=JSON.parse(localStorage.getItem('nexus-genba-records-v1')||'{}')}catch{}
 if(!bests||typeof bests!=='object'||Array.isArray(bests))bests={};
-// Regular lineups cleared with rank S. Unlocks the hidden lineup once all are present.
+// Keep legacy S achievements; A-or-S clears now unlock the hidden lineup.
+const REGULAR_GROUPS=GROUPS.map((g,i)=>i).filter(i=>!GROUPS[i].hidden);
 const S_CLEAR_KEY='dol-genba-s-clears-v1';
-let sClears=[];try{const saved=JSON.parse(localStorage.getItem(S_CLEAR_KEY)||'[]');if(Array.isArray(saved))sClears=saved.filter(Number.isInteger)}catch{}
+const QUALIFYING_CLEAR_KEY='dol-genba-a-or-s-clears-v1';
+function loadClears(key){try{const saved=JSON.parse(localStorage.getItem(key)||'[]');return Array.isArray(saved)?[...new Set(saved.filter(i=>REGULAR_GROUPS.includes(i)))]:[]}catch{return []}}
+let sClears=loadClears(S_CLEAR_KEY);
+let qualifyingClears=[...new Set([...sClears,...loadClears(QUALIFYING_CLEAR_KEY)])];
 // Release default for static Web and bundled native apps. Only serve.mjs --debug-unlock
 // replaces this declaration in its HTTP response; it never modifies this source file.
 const DEBUG_UNLOCK=false;
-const REGULAR_GROUPS=GROUPS.map((g,i)=>i).filter(i=>!GROUPS[i].hidden);
-const hiddenUnlocked=()=>DEBUG_UNLOCK||REGULAR_GROUPS.every(i=>sClears.includes(i));
+const hiddenUnlocked=()=>DEBUG_UNLOCK||REGULAR_GROUPS.every(i=>qualifyingClears.includes(i));
 const rand=(a,b)=>a+Math.random()*(b-a),clamp=(n,a,b)=>Math.min(b,Math.max(a,n));
 const bestKey=()=>`${chosenVenue}-${chosenGroup}`;
 function setText(id,v){$(id).textContent=v}
@@ -71,7 +74,7 @@ function buildMenu(){
  $('venues').innerHTML=VENUES.map((v,i)=>`<button class="venue-card" data-venue="${i}" aria-pressed="${i===chosenVenue}"><span class="card-meta"><span>${v.tag}</span><strong>${v.level}</strong></span><b>${v.name}</b></button>`).join('');
  if(GROUPS[chosenGroup].hidden&&!hiddenUnlocked())chosenGroup=0;
  $('groups').innerHTML=GROUPS.map((g,i)=>g.hidden&&!hiddenUnlocked()
-  ?`<button class="group-card is-locked" data-group="${i}" aria-pressed="false" disabled aria-label="隠しアイドル：全アイドルS評価で出演"><span class="group-color"></span><b>？？？</b><small>全アイドルS評価で出演</small></button>`
+  ?`<button class="group-card is-locked" data-group="${i}" aria-pressed="false" disabled aria-label="隠しアイドル：全アイドルA評価以上で出演"><span class="group-color"></span><b>？？？</b><small>全アイドルA評価以上で出演</small></button>`
   :`<button class="group-card${g.hidden?' is-hidden':''}" data-group="${i}" aria-pressed="${i===chosenGroup}" style="--group-color:${g.color}"><span class="group-color"></span><b>${g.name}</b><small>${g.tag}</small></button>`).join('');
  document.querySelectorAll('[data-venue]').forEach(b=>b.onclick=()=>{chosenVenue=Number(b.dataset.venue);buildMenu();tone(420,.06)});
  document.querySelectorAll('[data-group]').forEach(b=>b.onclick=()=>{chosenGroup=Number(b.dataset.group);buildMenu();tone(520,.06)});
@@ -216,6 +219,7 @@ function finish(){
  const result=evaluateRank(state);state.rank=result.rank;
  const wasUnlocked=hiddenUnlocked();
  if(result.rank==='S'&&!GROUPS[chosenGroup].hidden&&!sClears.includes(chosenGroup)){sClears.push(chosenGroup);try{localStorage.setItem(S_CLEAR_KEY,JSON.stringify(sClears))}catch{}}
+ if(['A','S'].includes(result.rank)&&!GROUPS[chosenGroup].hidden&&!qualifyingClears.includes(chosenGroup)){qualifyingClears.push(chosenGroup);try{localStorage.setItem(QUALIFYING_CLEAR_KEY,JSON.stringify(qualifyingClears))}catch{}}
  $('unlockNote').classList.toggle('hidden',wasUnlocked||!hiddenUnlocked());
  setText('rank',result.rank);setText('rankTitle',result.title);$('resultDialog').dataset.rank=result.rank;$('resultImage').src=`rank-${result.rank.toLowerCase()}.png`;$('resultImage').alt=result.alt;
  setText('resultRate',`対応率 ${Math.floor(result.rate*1000)/10}%（${state.count} / ${result.total}人）`);

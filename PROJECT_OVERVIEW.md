@@ -16,7 +16,7 @@ Vanilla JavaScript ES Modules、Canvas 2D、dialog、Pointer Events。バック�
 状態遷移はmenu→countdown→playing→result。paused経由で再開。document.visibilitychangeでも停止。
 resetGameが初期化、spawnFan/spawnScheduledFansが出現、chooseFanがキュー、updateが時間と移動、ejectが採点、missFanが見逃しの共通集計、evaluateRankがS〜D判定、drawGame/drawFan/drawMosh/drawConnectionが描画。
 localStorageのnexus-genba-records-v1へ会場-グループ別の人数とスコアを保存。同人数ならスコア比較。保存失敗でもプレイ継続。
-フォントはGoogle FontsのDotGothic16/Noto Sans JPをCSSから外部取得。ネットなしでも代替字体で動く。ネイティブ版はライセンス付き同梱を推奨。
+ゲームUIとCanvasのフォントはDotGothic16に統一。Google FontsをCSSから外部取得し、ネットなしでもmonospaceの代替字体で動く。ネイティブ版はライセンス付き同梱を推奨。
 音源はWeb Audio合成、初期OFF。対応ブラウザに限りWebMCPの状態取得/現場選択を登録するが必須ではない。
 
 旧保存キーnexus-genba-records-v1は既存記録維持のため内部互換用として継続。画面や画像内の名称はIDOL SECURITYに統一。
