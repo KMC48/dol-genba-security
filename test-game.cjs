@@ -16,6 +16,23 @@ vm.createContext(context);
 vm.runInContext(fs.readFileSync(base+'game.js','utf8')+'\nglobalThis.test={startGame,resetGame,beginPlay,update,chooseFan,eject,special,pause,resume,goMenu,spawnFan,drawGame,drawPreview,moshPose,spawnScheduledFans,updateCrowdFan,frontRowY,stageY,idolPose,idolPresence,missConnection,missFan,evaluateRank,finish,getState:()=>state,getMode:()=>mode,setConfig:(v,g)=>{chosenVenue=v;chosenGroup=g},setReady:()=>assetReady=true,venues:VENUES,groups:GROUPS};',context);
 
 const t=context.test;t.setReady();
+// Manual copy stays explicit; the formula follows the full rank explanation.
+const manualHtml=fs.readFileSync(base+'index.html','utf8');
+assert.match(manualHtml, /id="helpBtn"[^>]*aria-label="現場の守り方"[^>]*>現場の守り方💡<\/button>/);
+assert.match(manualHtml, /id="menuTitleBtn"[\s\S]*?<p class="mission-intro">現場を荒らす厄介なオタクを退場させろ！<\/p>\s*<div class="mission-heading">/);
+assert(manualHtml.includes('<b>S評価は見逃し・誤認ともにゼロの場合に。</b>'));
+assert(manualHtml.includes('条件を満たす最上位のランクになります。<small class="rank-formula">※対応率＝退場人数÷出現人数</small>'));
+// Every venue renders a background and five idols, but no miniature fans.
+context.recordedVenueDraws=[];
+vm.runInContext(`{
+ const c=new Proxy({}, {get:(_,key)=>key==='drawImage'?(...args)=>recordedVenueDraws.push(args):()=>{}});
+ for(const group of [0,4])for(let venue=0;venue<4;venue++){
+  chosenGroup=group;drawVenue(c,640,720,1,venue);
+ }
+ chosenGroup=0;
+}`,context);
+assert.equal(context.recordedVenueDraws.length,8*6,'venue background plus five idols only');
+assert(context.recordedVenueDraws.every(args=>args[8]!==22),'no 22px decorative audience sprites');
 assert.equal(Object.keys(registry).length,2);
 assert.equal(registry.configure_mission.execute({venue:2,lineup:1}).venue,'ドーム公演');
 assert.throws(()=>registry.configure_mission.execute({venue:4,lineup:1}));
