@@ -417,7 +417,11 @@ document.addEventListener('keydown',e=>{
  if(e.code==='Space'){e.preventDefault();special()}
  if(/^[0-9]$/.test(e.key)){const f=state.fans.find(f=>!f.normal&&f.key===Number(e.key)&&f.status==='active');if(f)chooseFan(f)}
 });
-$('startBtn').onclick=startGame;$('retryBtn').onclick=startGame;$('selectBtn').onclick=goMenu;$('backBtn').onclick=goMenu;$('pauseTitleBtn').onclick=goTitle;$('resultTitleBtn').onclick=goTitle;$('menuTitleBtn').onclick=goTitle;$('pauseBtn').onclick=pause;$('resumeBtn').onclick=resume;$('specialBtn').onclick=special;
+// Arena zoom (wide screens): hide the side columns and fit the arena to the screen height. Remembered per device.
+const ZOOM_EXPAND='<path d="M3 3h6M3 3v6M3 3l6 6M21 3h-6M21 3v6M21 3l-6 6M3 21h6M3 21v-6M3 21l6-6M21 21h-6M21 21v-6M21 21l-6-6"/>',ZOOM_SHRINK='<path d="M9 9H3M9 9V3M9 9 3 3M15 9h6M15 9V3M15 9l6-6M9 15H3M9 15v6M9 15l-6 6M15 15h6M15 15v6M15 15l6 6"/>';
+function setArenaZoom(on){document.body.classList.toggle('arena-zoom',on);const b=$('zoomBtn');b.setAttribute('aria-pressed',String(on));b.setAttribute('aria-label',on?'会場の拡大を戻す':'会場を拡大する');b.title=on?'元に戻す':'拡大';const svg=b.querySelector('svg');if(svg)svg.innerHTML=on?ZOOM_SHRINK:ZOOM_EXPAND;try{localStorage.setItem('dolgenba-arena-zoom',on?'1':'0')}catch{}}
+{let z=false;try{z=localStorage.getItem('dolgenba-arena-zoom')==='1'}catch{}if(z)setArenaZoom(true)}
+$('startBtn').onclick=startGame;$('retryBtn').onclick=startGame;$('selectBtn').onclick=goMenu;$('backBtn').onclick=goMenu;$('pauseTitleBtn').onclick=goTitle;$('resultTitleBtn').onclick=goTitle;$('menuTitleBtn').onclick=goTitle;$('zoomBtn').onclick=()=>setArenaZoom(!document.body.classList.contains('arena-zoom'));$('pauseBtn').onclick=pause;$('resumeBtn').onclick=resume;$('specialBtn').onclick=special;
 // Header logo: go to the title without reloading; during a mission it only pauses so a stray tap never ends the run.
 $('brandLink').addEventListener('click',e=>{e.preventDefault();if(mode==='playing'||mode==='countdown')pause();else if(mode!=='title')goTitle()});
 $('pauseDialog').addEventListener('cancel',e=>{e.preventDefault();resume()});$('resultDialog').addEventListener('cancel',e=>{e.preventDefault();goMenu()});
