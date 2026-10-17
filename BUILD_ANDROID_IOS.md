@@ -44,7 +44,7 @@ Android Studioで確認する場合は `npm run sync:android` → `npm run open:
 
 ```sh
 adb install -r android/app/build/outputs/apk/debug/app-debug.apk
-adb shell am start -n jp.kmccreativelab.dolgenba/.MainActivity
+adb shell am start -n jp.kmccreativelab.idoldefense/.MainActivity
 ```
 
 異なる開発環境のデバッグ鍵では上書きインストールできない場合がある。アンインストールは保存データを消すため、確認なしに実施しない。
@@ -55,10 +55,10 @@ PRと手動実行用に `Android debug APK` workflowを用意。Node 22 / runner
 成功時はAPKとlintレポートをActionsのArtifactsへ14日間保存する。製品署名鍵・ストア認証情報は使用しない。
 実行にはリポジトリでActionsが有効であることが必要。CI成功は実機の表示・音・操作を保証しない。
 
-## appId: 所有者の確定が必要
+## appId（Bundle ID / applicationId）
 
-**`jp.kmccreativelab.dolgenba` は仮値のまま**。今回の開発用プロジェクト生成は、この仮値を使用する依頼に基づく。
-ストア登録・リリース署名・配信前に所有者が名称と識別子を確定する。Android versionNameは1.5.0（v1.5で更新。`npm run verify:android` がpackage.jsonのversionと照合する）、versionCodeは初期値1（ストア未提出のため据え置き）。
+**`jp.kmccreativelab.idoldefense` で確定**（2026-10-17、所有者指定、Android慣習に合わせ小文字。旧仮値 `jp.kmccreativelab.dolgenba` から変更）。iOS・Android共通。
+App Store Connect / Google Play に登録した後は変更できない。旧仮値でインストールした開発版とは別アプリとして扱われる。Android versionNameはpackage.jsonと同じ版（`npm run verify:android` がpackage.jsonのversionと照合する）、versionCodeは初期値1（ストア未提出のため据え置き）。
 変更する場合は以下を同時に更新して同期・再ビルドする。
 
 - `capacitor.config.json` の `appId`
@@ -104,7 +104,7 @@ Capacitor 8.5.3（Swift Package Manager、CocoaPods不使用）。`ios/DerivedDa
 - Splash: 黒背景＋アイコンの2732×2732画像を `Splash.imageset` の3ファイル（1x/2x/3x）に配置
 - Info.plist: `ITSAppUsesNonExemptEncryption = false` を追加
 - `MARKETING_VERSION = 1.5.0`（v1.5で更新）、`CURRENT_PROJECT_VERSION = 1`
-- Display Name「ドル現場防衛戦」、Bundle Identifier `jp.kmccreativelab.dolgenba`（**仮値**）は `cap add ios` が設定済み
+- Display Name「ドル現場防衛戦」、Bundle Identifier `jp.kmccreativelab.dolgenba`（**仮値**）は `cap add ios` が設定済み（2026-10-17に `jp.kmccreativelab.idoldefense` へ変更）
 - 画面の向き（回転あり）・iPad対応（`TARGETED_DEVICE_FAMILY = 1,2`）は生成時の既定値のまま
 
 ### 以降の更新

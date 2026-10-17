@@ -14,6 +14,10 @@ assert.deepEqual(copiedConfig, config, 'Run npm run sync:android after changing 
 const gradle = await readFile(path.join(root, 'android/app/build.gradle'), 'utf8');
 assert.equal(gradle.match(/applicationId\s+"([^"]+)"/)?.[1], config.appId);
 assert.equal(gradle.match(/namespace\s*=\s*"([^"]+)"/)?.[1], config.appId);
+const activity = await readFile(path.join(root, 'android/app/src/main/java', ...config.appId.split('.'), 'MainActivity.java'), 'utf8');
+assert.equal(activity.match(/^package\s+([\w.]+);/m)?.[1], config.appId, 'MainActivity package and directory must match appId');
+const pbxproj = await readFile(path.join(root, 'ios/App/App.xcodeproj/project.pbxproj'), 'utf8');
+assert.deepEqual([...new Set([...pbxproj.matchAll(/PRODUCT_BUNDLE_IDENTIFIER = ([^;]+);/g)].map(m => m[1]))], [config.appId], 'iOS Bundle Identifier must match appId');
 const pkg = JSON.parse(await readFile(path.join(root, 'package.json')));
 assert.equal(gradle.match(/versionName\s+"([^"]+)"/)?.[1], pkg.version);
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -38,4 +42,4 @@ for (const relative of webFiles) {
   }
 }
 console.log(`PASS: ${webFiles.length} bundled files match www/ and current sources; appId/version/config consistent.`);
-console.log(`Provisional appId: ${config.appId}. Owner must confirm before store registration.`);
+console.log(`appId: ${config.appId} (Android and iOS). Fixed once registered in App Store Connect / Google Play.`);

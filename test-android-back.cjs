@@ -8,7 +8,7 @@ const path = require('node:path');
 const SAVE_KEY = 'nexus-genba-records-v1';
 const source = fs.readFileSync(path.join(__dirname, 'game.js'), 'utf8');
 const nativeSource = fs.readFileSync(path.join(__dirname,
-  'android/app/src/main/java/jp/kmccreativelab/dolgenba/MainActivity.java'), 'utf8');
+  'android/app/src/main/java/jp/kmccreativelab/idoldefense/MainActivity.java'), 'utf8');
 // Execute the exact script sent by MainActivity, not a second implementation.
 const nativeBackScript = JSON.parse(nativeSource.match(/BACK_SCRIPT = (".*");/)[1]);
 const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
