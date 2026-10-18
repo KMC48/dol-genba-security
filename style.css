@@ -45,6 +45,18 @@
 /* Result scenes share the same framing across all five ranks. */
 .result-image{display:block;width:100%;height:auto;max-height:29dvh;object-fit:contain;background:#0a1322;border:1px solid #334559;border-radius:6px;margin:4px 0 14px;image-rendering:pixelated}
 .result-roster{margin-top:24px}
+.result-share{margin-top:14px}
+.result-share-button{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:54px;padding:12px 8px;border:2px solid var(--lime);background:#1d2b22;color:var(--lime);box-shadow:4px 4px 0 #40532c;font:18px/1.5 var(--pixel);cursor:pointer}
+.result-share-button svg{width:22px;height:22px;flex-shrink:0;fill:currentColor}
+.result-share-button:focus-visible{outline:2px solid var(--text);outline-offset:5px}
+.result-share-button:active{transform:translate(2px,2px);box-shadow:2px 2px 0 #40532c}
+.result-share-button:disabled{opacity:.65;cursor:wait}
+@media(hover:hover){.result-share-button:hover{background:var(--lime);color:var(--bg)}}
+.share-status{font:12px/1.7 var(--pixel);color:var(--lime);margin:12px 0 0}
+.share-status:empty{display:none}
+.share-fallback{margin-top:12px;padding:12px;background:#0b1016;border:1px solid var(--line)}
+.share-fallback label{display:block;font-size:12px;line-height:1.7;margin-bottom:8px}
+.share-fallback textarea{display:block;width:100%;resize:vertical;background:#131b23;color:var(--text);border:1px solid #5a6871;padding:10px;font:13px/1.7 var(--pixel);-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
 .roster-heading{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .roster-heading h3{font:18px var(--pixel);margin:0;color:var(--lime)}
 .roster-heading>span{font-size:11px;color:var(--muted)}

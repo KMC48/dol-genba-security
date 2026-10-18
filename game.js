@@ -228,7 +228,48 @@ function finish(){
  setText('resultRare',state.rarePoints?`♥ 繋がりオタク確保：+${state.rarePoints.toLocaleString()}点`:state.rarePenalty?`♥ 見逃し：アイドル1人脱退 / −${state.rarePenalty.toLocaleString()}点`:'♥ 繋がりオタク：未対応');
  renderResultBreakdown();setText('resultQuote',state.idolDeparture?'「ひとり欠けたステージ。次は繋がりを見逃すな！」':state.mistakes===0?'「善良なオタクへの誤認ゼロ。アイドルも、オタクもありがとう！」':state.mistakes>3?'「次は、ルールを守っているオタクをよく見極めよう。」':'「今日も、アイドルのステージを守り抜いた！」');
  const prev=bests[bestKey()];const isBest=!prev||state.count>prev.count||(state.count===prev.count&&state.score>prev.score);$('newBest').classList.toggle('hidden',!isBest);if(isBest){bests[bestKey()]={count:state.count,score:state.score};try{localStorage.setItem('nexus-genba-records-v1',JSON.stringify(bests))}catch{}}
+ $('shareFallback').hidden=true;setText('shareStatus','');$('shareText').value='';
  $('resultDialog').showModal();$('resultDialog').focus({preventScroll:true});$('resultDialog').scrollTop=0;tone(523,.13);tone(659,.13,'square',.035,.14);tone(784,.3,'square',.035,.28);
+}
+// Always share the published game URL, never a localhost, native or debug-unlock URL.
+const GAME_SHARE_URL='https://kmc48.github.io/dol-genba-security/';
+let resultShareBusy=false;
+function resultShareData(){
+ if(mode!=='result'||!state)return null;
+ return {title:'ドル現場防衛戦｜現場報告',text:`厄介オタクを${state.count}人退場させた！\n${VENUES[chosenVenue].name} × ${GROUPS[chosenGroup].name}\n${state.rank}評価「${RANKS[state.rank].title}」 / ${state.score.toLocaleString('ja-JP')}点\n#ドル現場防衛戦 #現場報告`,url:GAME_SHARE_URL};
+}
+function showShareFallback(data,message){
+ $('shareText').value=`${data.text}\n${data.url}`;$('shareFallback').hidden=false;setText('shareStatus',message);
+}
+async function copyResultText(data=resultShareData()){
+ if(!data)return;
+ const current=state;
+ try{
+  if(!window.navigator?.clipboard?.writeText)throw new Error('Clipboard unavailable');
+  await window.navigator.clipboard.writeText(`${data.text}\n${data.url}`);
+  if(state===current&&mode==='result')setText('shareStatus','結果をコピーしました。SNSに貼り付けて報告！');
+ }catch{
+  if(state!==current||mode!=='result')return;
+  showShareFallback(data,'自動コピーが使えないため、下の報告文を選択してコピーしてください。');
+  $('shareText').focus();$('shareText').select();
+ }
+}
+async function shareResult(){
+ const data=resultShareData();if(!data||resultShareBusy)return;
+ const current=state;resultShareBusy=true;$('shareResultBtn').disabled=true;setText('shareStatus','');$('shareFallback').hidden=true;
+ try{
+  // Capacitor injects the installed plugin's JS bridge into the bundled WebView.
+  const cap=window.Capacitor,nativeShare=cap?.isNativePlatform?.()?cap.Plugins?.Share:null;
+  if(nativeShare?.share)await nativeShare.share({...data,dialogTitle:'現場の結果を報告'});
+  else if(window.navigator?.share&&(!window.navigator.canShare||window.navigator.canShare(data)))await window.navigator.share(data);
+  else{await copyResultText(data);return}
+  // Resolving a share sheet does not prove that a social post was published.
+  if(state===current&&mode==='result')setText('shareStatus','共有メニューを閉じました。おつかれさまでした！');
+ }catch(error){
+  if(state!==current||mode!=='result')return;
+  if(error?.name==='AbortError'||/^Share cancel(?:ed|led)$/i.test(error?.message||''))return;
+  showShareFallback(data,'共有メニューを開けませんでした。報告文をコピーしてシェアできます。');
+ }finally{resultShareBusy=false;$('shareResultBtn').disabled=false}
 }
 function missConnection(){
  if(state.idolDeparture)return;
@@ -425,6 +466,7 @@ $('startBtn').onclick=startGame;$('retryBtn').onclick=startGame;$('selectBtn').o
 // Header logo: go to the title without reloading; during a mission it only pauses so a stray tap never ends the run.
 $('brandLink').addEventListener('click',e=>{e.preventDefault();if(mode==='playing'||mode==='countdown')pause();else if(mode!=='title')goTitle()});
 $('pauseDialog').addEventListener('cancel',e=>{e.preventDefault();resume()});$('resultDialog').addEventListener('cancel',e=>{e.preventDefault();goMenu()});
+$('shareResultBtn').onclick=shareResult;$('copyResultBtn').onclick=()=>copyResultText();
 let helpPaused=false;
 $('helpBtn').onclick=()=>{helpPaused=mode==='playing'||mode==='countdown';if(helpPaused){state.previousMode=mode;mode='paused'}$('helpDialog').showModal()};
 $('helpDialog').addEventListener('close',()=>{if(helpPaused&&mode==='paused'){mode=state.previousMode;lastFrame=performance.now();updateHud()}helpPaused=false});

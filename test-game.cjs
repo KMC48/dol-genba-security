@@ -189,3 +189,4 @@ console.log(JSON.stringify({checks:'PASS',animal:animalRuns,missions:runs,note:'
 
 // Keep Back regressions in the existing npm test / Android CI entry point.
 require('./test-android-back.cjs');
+require('./test-sharing.cjs');
