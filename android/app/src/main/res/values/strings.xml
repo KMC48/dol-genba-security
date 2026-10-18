@@ -4,4 +4,5 @@
     <string name="title_activity_main">ドル現場防衛戦</string>
     <string name="package_name">jp.kmccreativelab.idoldefense</string>
     <string name="custom_url_scheme">jp.kmccreativelab.idoldefense</string>
+    <string name="admob_app_id">ca-app-pub-3940256099942544~3347511713</string>
 </resources>

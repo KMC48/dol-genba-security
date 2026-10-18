@@ -9,7 +9,7 @@
     "dev": "node serve.mjs",
     "dev:animal": "node serve.mjs --debug-unlock",
     "check": "node --check game.js",
-    "test": "node test-game.cjs",
+    "test": "node test-game.cjs && node --test test-android-back.cjs test-sharing.cjs test-ads.cjs",
     "build": "node build.mjs",
     "sync:android": "npm run build && npx cap sync android",
     "sync:ios": "npm run build && npx cap sync ios",
@@ -19,6 +19,7 @@
     "build:android:debug": "npm run sync:android && npm run verify:android && node scripts/gradle.mjs :app:assembleDebug"
   },
   "dependencies": {
+    "@capacitor-community/admob": "8.2.1",
     "@capacitor/android": "8.5.3",
     "@capacitor/core": "8.5.3",
     "@capacitor/ios": "8.5.3",

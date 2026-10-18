@@ -140,3 +140,20 @@ appIdを変更する場合は、Xcodeの `PRODUCT_BUNDLE_IDENTIFIER`（Debug/Rel
 - https://capacitorjs.com/docs/config
 
 提出時のストア要件は提出直前に再確認する。
+
+## 広告（Google AdMob 全画面広告）
+
+`@capacitor-community/admob` 8.2.1。iOS/Androidアプリのみ（Web版は広告・トラッキングなし）。
+最初の3プレイは広告なし、以降3プレイごとに1回、結果画面を閉じた後（もう一度／別の現場／タイトルへ／Android戻る）に表示。読み込めていなければ表示せず先へ進む。
+iOSのトラッキング許可（ATT）は、3プレイ目の結果を閉じたときに1回だけ確認。許可しない場合はパーソナライズなし（npa）で配信。
+
+**現在はGoogleのテスト用IDで動作。リリース前に必ず差し替える。**
+
+| 場所 | 現在（テスト用） | 差し替え先 |
+| --- | --- | --- |
+| `ios/App/App/Info.plist` の `GADApplicationIdentifier` | `ca-app-pub-3940256099942544~1458002511` | AdMobのiOSアプリID |
+| `android/app/src/main/res/values/strings.xml` の `admob_app_id` | `ca-app-pub-3940256099942544~3347511713` | AdMobのAndroidアプリID |
+| `game.js` の `AD_UNITS.ios` / `AD_UNITS.android` | Googleのサンプル全画面広告ユニット | 本番の全画面広告ユニットID |
+| `game.js` の `AD_TESTING` | `true` | `false` |
+
+あわせて: Info.plist の `SKAdNetworkItems` をGoogleのiOSガイドの一覧に更新、`app-ads.txt` をデベロッパーサイトのルートに設置、App Store Connect の「Appのプライバシー」をAdMobの取得データに合わせて更新。
