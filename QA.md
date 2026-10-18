@@ -1,3 +1,16 @@
+# 全画面広告（AdMob）・トラッキング許可 / 2026-10-19（Mac）
+
+ブランチ `feat/admob-interstitial`。iOS/Androidアプリのみ、Web版は変更なし（広告なし・プレイ回数も保存しない）。
+
+- `@capacitor-community/admob` 8.2.1 を追加（Capacitor 8対応）。iOS: `GADApplicationIdentifier`・`NSUserTrackingUsageDescription`・`SKAdNetworkItems`、Android: `com.google.android.gms.ads.APPLICATION_ID`。現在はGoogleのテスト用ID。
+- 最初の3プレイは広告なし、以降3プレイごとに全画面広告1回（6・9・12…回目の結果を閉じたとき）。結果の表示中・シェア中・プレイ中は出さない。広告を閉じるまで次の画面に進まない。未読込・表示失敗時は待たずに先へ進む。連打は無視。
+- iOSのトラッキング許可は3回目の結果を閉じたときに1回だけ。許可なしはパーソナライズなし（npa）。
+- 広告を消す買い切り（v1.7予定）用に `dolgenba-ads-removed-v1` が立っていれば広告もトラッキング確認も出さない（購入処理は未実装）。
+- `privacy.html` を広告・トラッキング・Googleへの情報提供の記載に更新。
+- `npm test` を全テスト実行に変更（ゲーム＋Android戻る29件＋シェア9件＋広告7件、計45件 PASS）。CIでも全件実行される。
+- iPhone 17 Pro Max Simulator（広告間隔を一時的に1回にした確認用コピー、ソースは変更なし）: 1回目の結果を閉じる→トラッキング許可画面（文言表示）→許可→2回目プレイ開始。2回目の結果表示中は広告なし、閉じたときにGoogleのテスト全画面広告を表示、×で閉じると次のプレイが開始。
+- 未確認: 本番の広告ID、Android実機・エミュレータ、実機での広告表示、許可しない場合の表示。
+
 # 結果画面のSNS共有 / 2026-10-19
 
 - 最新main `bd6e551`（Mac側の会場拡大・縦固定・フォント同梱を含む）から実装。退場人数の下にドット調の「結果を報告(シェア)」を配置。

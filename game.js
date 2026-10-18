@@ -229,6 +229,7 @@ function finish(){
  renderResultBreakdown();setText('resultQuote',state.idolDeparture?'「ひとり欠けたステージ。次は繋がりを見逃すな！」':state.mistakes===0?'「善良なオタクへの誤認ゼロ。アイドルも、オタクもありがとう！」':state.mistakes>3?'「次は、ルールを守っているオタクをよく見極めよう。」':'「今日も、アイドルのステージを守り抜いた！」');
  const prev=bests[bestKey()];const isBest=!prev||state.count>prev.count||(state.count===prev.count&&state.score>prev.score);$('newBest').classList.toggle('hidden',!isBest);if(isBest){bests[bestKey()]={count:state.count,score:state.score};try{localStorage.setItem('nexus-genba-records-v1',JSON.stringify(bests))}catch{}}
  $('shareFallback').hidden=true;setText('shareStatus','');$('shareText').value='';
+ recordCompletedPlay();
  $('resultDialog').showModal();$('resultDialog').focus({preventScroll:true});$('resultDialog').scrollTop=0;tone(523,.13);tone(659,.13,'square',.035,.14);tone(784,.3,'square',.035,.28);
 }
 // Always share the published game URL, never a localhost, native or debug-unlock URL.
@@ -462,11 +463,67 @@ document.addEventListener('keydown',e=>{
 const ZOOM_EXPAND='<path d="M3 3h6M3 3v6M3 3l6 6M21 3h-6M21 3v6M21 3l-6 6M3 21h6M3 21v-6M3 21l6-6M21 21h-6M21 21v-6M21 21l-6-6"/>',ZOOM_SHRINK='<path d="M9 9H3M9 9V3M9 9 3 3M15 9h6M15 9V3M15 9l6-6M9 15H3M9 15v6M9 15l-6 6M15 15h6M15 15v6M15 15l6 6"/>';
 function setArenaZoom(on){document.body.classList.toggle('arena-zoom',on);const b=$('zoomBtn');b.setAttribute('aria-pressed',String(on));b.setAttribute('aria-label',on?'会場の拡大を戻す':'会場を拡大する');b.title=on?'元に戻す':'拡大';const svg=b.querySelector('svg');if(svg)svg.innerHTML=on?ZOOM_SHRINK:ZOOM_EXPAND;try{localStorage.setItem('dolgenba-arena-zoom',on?'1':'0')}catch{}}
 {let z=false;try{z=localStorage.getItem('dolgenba-arena-zoom')==='1'}catch{}if(z)setArenaZoom(true)}
-$('startBtn').onclick=startGame;$('retryBtn').onclick=startGame;$('selectBtn').onclick=goMenu;$('backBtn').onclick=goMenu;$('pauseTitleBtn').onclick=goTitle;$('resultTitleBtn').onclick=goTitle;$('menuTitleBtn').onclick=goTitle;$('zoomBtn').onclick=()=>setArenaZoom(!document.body.classList.contains('arena-zoom'));$('pauseBtn').onclick=pause;$('resumeBtn').onclick=resume;$('specialBtn').onclick=special;
+$('startBtn').onclick=startGame;$('retryBtn').onclick=()=>leaveResult(startGame);$('selectBtn').onclick=()=>leaveResult(goMenu);$('backBtn').onclick=goMenu;$('pauseTitleBtn').onclick=goTitle;$('resultTitleBtn').onclick=()=>leaveResult(goTitle);$('menuTitleBtn').onclick=goTitle;$('zoomBtn').onclick=()=>setArenaZoom(!document.body.classList.contains('arena-zoom'));$('pauseBtn').onclick=pause;$('resumeBtn').onclick=resume;$('specialBtn').onclick=special;
 // Header logo: go to the title without reloading; during a mission it only pauses so a stray tap never ends the run.
 $('brandLink').addEventListener('click',e=>{e.preventDefault();if(mode==='playing'||mode==='countdown')pause();else if(mode!=='title')goTitle()});
-$('pauseDialog').addEventListener('cancel',e=>{e.preventDefault();resume()});$('resultDialog').addEventListener('cancel',e=>{e.preventDefault();goMenu()});
+$('pauseDialog').addEventListener('cancel',e=>{e.preventDefault();resume()});$('resultDialog').addEventListener('cancel',e=>{e.preventDefault();leaveResult(goMenu)});
 $('shareResultBtn').onclick=shareResult;$('copyResultBtn').onclick=()=>copyResultText();
+// Interstitial ads: iOS/Android app only (the web version never shows ads or asks for tracking).
+// The first 3 finished missions are ad-free; after that, one ad per 3 missions. The ad is shown only when the
+// player leaves the result screen, so the report and the share button are never covered. Ads never block play:
+// if none is loaded in time, the player simply continues.
+const AD_FREE_PLAYS=3,AD_EVERY_PLAYS=3,PLAY_COUNT_KEY='dolgenba-completed-plays-v1',ADS_REMOVED_KEY='dolgenba-ads-removed-v1';
+// Google's sample ad units. Replace with the production AdMob IDs (and set AD_TESTING=false) before release.
+const AD_TESTING=true,AD_UNITS={ios:'ca-app-pub-3940256099942544/4411468910',android:'ca-app-pub-3940256099942544/1033173712'};
+let completedPlays=0;try{completedPlays=Math.max(0,parseInt(localStorage.getItem(PLAY_COUNT_KEY)||'0',10)||0)}catch{}
+let adsRemoved=false;try{adsRemoved=localStorage.getItem(ADS_REMOVED_KEY)==='1'}catch{}
+let adPending=false,adReady=false,adLoading=false,adStarting=null,adBusy=false;
+const adDueAfterPlay=n=>n>AD_FREE_PLAYS&&(n-AD_FREE_PLAYS)%AD_EVERY_PLAYS===0;
+function adMob(){const cap=window.Capacitor;return !adsRemoved&&cap?.isNativePlatform?.()?cap.Plugins?.AdMob||null:null}
+// App Tracking Transparency is asked once, when the player leaves the result of the last ad-free mission.
+function startAds(){
+ const ad=adMob();if(!ad)return Promise.resolve(false);
+ adStarting??=(async()=>{
+  try{await ad.requestTrackingAuthorization?.()}catch{}
+  try{await ad.initialize({initializeForTesting:AD_TESTING});return true}catch{adStarting=null;return false}
+ })();
+ return adStarting;
+}
+async function prepareAd(){
+ const ad=adMob();if(!ad||adReady||adLoading)return;adLoading=true;
+ try{
+  if(!await startAds())return;
+  let npa=true;try{npa=(await ad.trackingAuthorizationStatus()).status!=='authorized'}catch{}
+  await ad.prepareInterstitial({adId:AD_UNITS[window.Capacitor.getPlatform?.()]||AD_UNITS.ios,isTesting:AD_TESTING,npa});adReady=true;
+ }catch{adReady=false}finally{adLoading=false}
+}
+function recordCompletedPlay(){
+ if(!adMob())return; // Web: nothing to count, nothing extra written to storage.
+ completedPlays++;try{localStorage.setItem(PLAY_COUNT_KEY,String(completedPlays))}catch{}
+ if(adDueAfterPlay(completedPlays))adPending=true;
+ // Load one mission ahead so the ad is ready when the due result is closed.
+ if(adStarting&&(adPending||adDueAfterPlay(completedPlays+1)))prepareAd();
+}
+function showInterstitialAndWait(ad){
+ return new Promise(resolve=>{
+  let handles=[],finished=false;const done=()=>{if(finished)return;finished=true;handles.forEach(h=>{try{h?.remove?.()}catch{}});resolve()};
+  Promise.all(['interstitialAdDismissed','interstitialAdFailedToShow'].map(name=>ad.addListener(name,done)))
+   .then(list=>{handles=list;return ad.showInterstitial()}).catch(done);
+ });
+}
+async function leaveResult(action){
+ if(adBusy)return;
+ const ad=mode==='result'?adMob():null;
+ if(ad){
+  adBusy=true;
+  try{
+   if(!adStarting&&completedPlays>=AD_FREE_PLAYS){await startAds();prepareAd()}
+   if(adPending&&adReady){adPending=adReady=false;await showInterstitialAndWait(ad);prepareAd()}
+   else if(adPending){adPending=false}
+  }finally{adBusy=false}
+ }
+ action();
+}
 let helpPaused=false;
 $('helpBtn').onclick=()=>{helpPaused=mode==='playing'||mode==='countdown';if(helpPaused){state.previousMode=mode;mode='paused'}$('helpDialog').showModal()};
 $('helpDialog').addEventListener('close',()=>{if(helpPaused&&mode==='paused'){mode=state.previousMode;lastFrame=performance.now();updateHud()}helpPaused=false});
