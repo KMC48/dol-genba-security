@@ -19,7 +19,7 @@ const t=context.test;t.setReady();
 // Manual copy stays explicit; the formula follows the full rank explanation.
 const manualHtml=fs.readFileSync(base+'index.html','utf8');
 assert.match(manualHtml, /id="helpBtn"[^>]*aria-label="現場の守り方"[^>]*>現場の守り方💡<\/button>/);
-assert.match(manualHtml, /id="menuTitleBtn"[\s\S]*?<p class="mission-intro">現場を荒らす厄介なオタクを<br><span>退場させろ！<\/span><\/p>\s*<div class="mission-heading">/);
+assert.match(manualHtml, /id="menuTitleBtn"[\s\S]*?<p class="mission-intro">現場を荒らす厄介なオタクを<br><span>タップして退場させろ！<\/span><\/p>\s*<div class="mission-heading">/);
 const uiCss=fs.readFileSync(base+'style.css','utf8');
 assert(!uiCss.includes('Noto Sans JP')&&!uiCss.includes('Noto+Sans+JP'),'UI uses one pixel font');
 for(const declaration of uiCss.matchAll(/font(?:-family)?:([^;}]+)/g))assert(declaration[1]==='inherit'||declaration[1].includes('var(--pixel)'),`unexpected font: ${declaration[0]}`);

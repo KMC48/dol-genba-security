@@ -1,3 +1,10 @@
+# マニュアル見出し・メニュー主旨メッセージの文言変更 / 2026-10-18（Mac）
+
+- マニュアルの見出し「厄介だけを、見逃すな。」→「厄介なオタクを、見逃すな。」
+- メニュー上部のメッセージを「現場を荒らす厄介なオタクを／タップして退場させろ！」に変更（「オタクを」の後で改行、2行目は折り返さない）。test-game.cjs の照合も更新。
+- `npm run check` / `npm test` PASS、`node test-android-back.cjs` 29件 PASS、`npm run build` 成功。
+- ブラウザ幅320pxと1024pxで2行表示・横はみ出しなしを確認。
+
 # 会場の拡大ボタン・縦固定・見出し変更 / 2026-10-18（Mac）
 
 環境: macOS 26.5.2 / Xcode 26.5 / iOS Simulator 26.5（iPad Pro 13-inch (M5)）。ブランチ `feat/tablet-play-size`（PR #9 `fix/manual-label-and-mini-crowd` の上に積んだもの）。
