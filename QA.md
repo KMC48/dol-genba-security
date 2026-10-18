@@ -1,3 +1,11 @@
+# 結果画面のSNS共有 / 2026-10-19
+
+- 最新main `bd6e551`（Mac側の会場拡大・縦固定・フォント同梱を含む）から実装。退場人数の下にドット調の「結果を報告(シェア)」を配置。
+- Linux / Node.js 24.19.0: `npm run check`、`npm test`（全16ミッション＋38件のNodeテスト）、`npm run sync:android`、`npm run verify:android`（21ファイル照合）、`npm run sync:ios` 成功。両ネイティブプロジェクトが `@capacitor/share@8.0.3` を検出。
+- 新規回帰: Web共有とネイティブブリッジ優先、現在の人数・評価・得点、0人・負数・隠しアイドル、固定の公開URL、キャンセル、連打、権限拒否、コピー拒否/非対応、手動コピー、再挑戦、遅い完了の結果間混入防止。
+- Chromiumの320/390/768/1280pxで実DOM・同梱フォント・レイアウト・スクロール・共有/キャンセル/コピー経路（共有APIはスタブ）を検証。横はみ出しなし、ボタン高さ55px、人数と一覧の間に表示。結果は先頭から開き、報告文だけは長押し選択可能。pageerror 0件。
+- iOS/Android実機のOS共有メニュー・SNS受け渡し、iOSのネイティブビルドはこのLinux環境では未実施。Macで `npm ci` → `npm run sync:ios` → Xcode再ビルド後に確認する。自動投稿は行わない。
+
 # ストア提出準備：フォント同梱・プライバシーポリシー・長押し選択 / 2026-10-18（Mac）
 
 - フォント: Google Fontsの外部取得（`@import`）を廃止し、DotGothic16（SIL OFL 1.1）を `fonts/DotGothic16-Regular.woff2`（約500KB、全グリフ）としてライセンス `fonts/OFL-DotGothic16.txt` とともに同梱。`build.mjs` で `www/fonts/` に出力（www 21ファイル）、開発サーバーの許可リストにも追加。
