@@ -126,3 +126,6 @@ body.on-title .app{max-width:none;padding:0}
  body.playing.arena-zoom .field-sidebar,body.playing.arena-zoom .live-sidebar,body.playing.arena-zoom footer{display:none}
  body.playing.arena-zoom .play-layout{display:block;max-width:min(100%,calc((100dvh - 330px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) * 640 / 720));margin:auto}
 }
+
+/* Manual heading stays on one line: shrink with the dialog width (13 full-width chars), up to the usual 24px. */
+dialog h2.manual-title{white-space:nowrap;font-size:min(24px,calc((100vw - 80px) / 13.5))}
