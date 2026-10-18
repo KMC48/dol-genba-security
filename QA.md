@@ -1,3 +1,12 @@
+# ストア提出準備：フォント同梱・プライバシーポリシー・長押し選択 / 2026-10-18（Mac）
+
+- フォント: Google Fontsの外部取得（`@import`）を廃止し、DotGothic16（SIL OFL 1.1）を `fonts/DotGothic16-Regular.woff2`（約500KB、全グリフ）としてライセンス `fonts/OFL-DotGothic16.txt` とともに同梱。`build.mjs` で `www/fonts/` に出力（www 21ファイル）、開発サーバーの許可リストにも追加。
+- プライバシーポリシー兼サポートページ `privacy.html` を追加（GitHub Pages: `/privacy.html`、サポートは `#support`）。個人情報の収集なし、端末内保存のみ（ベスト記録・評価達成状況・拡大表示設定）、外部通信・広告・解析なし、問い合わせはGitHub Issues。
+- 長押しでの文字選択・iOSの長押しメニューを無効化（`user-select:none`、`-webkit-touch-callout:none`）。
+- test-game.cjs: フォントが外部取得でなく同梱ファイルから読み込まれること、ライセンス同梱を検証。
+- `npm run check` / `npm test` PASS、`node test-android-back.cjs` 29件 PASS、`npm run verify:android` PASS（21ファイル）、iOS Simulator向けビルド成功（`public/fonts/` 同梱を確認）。
+- ブラウザ: 外部リクエスト0件、DotGothic16が同梱ファイルから `loaded`、本文の `user-select:none`。privacy.html は幅375pxで横はみ出しなし。
+
 # マニュアル見出しを1行に / 2026-10-18（Mac）
 
 - 「厄介なオタクを、見逃すな。」を折り返さず1行で表示。画面幅に合わせて文字サイズを縮小（最大24px）。

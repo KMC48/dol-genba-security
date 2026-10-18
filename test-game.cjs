@@ -22,7 +22,10 @@ assert.match(manualHtml, /id="helpBtn"[^>]*aria-label="現場の守り方"[^>]*>
 assert.match(manualHtml, /id="menuTitleBtn"[\s\S]*?<p class="mission-intro">現場を荒らす厄介なオタクを<br><span>タップして退場させろ！<\/span><\/p>\s*<div class="mission-heading">/);
 const uiCss=fs.readFileSync(base+'style.css','utf8');
 assert(!uiCss.includes('Noto Sans JP')&&!uiCss.includes('Noto+Sans+JP'),'UI uses one pixel font');
-for(const declaration of uiCss.matchAll(/font(?:-family)?:([^;}]+)/g))assert(declaration[1]==='inherit'||declaration[1].includes('var(--pixel)'),`unexpected font: ${declaration[0]}`);
+assert(!/fonts\.googleapis|fonts\.gstatic|@import/.test(uiCss),'Font is bundled, not fetched');
+assert.match(uiCss,/@font-face\{font-family:'DotGothic16';src:url\('fonts\/DotGothic16-Regular\.woff2'\)/,'DotGothic16 is loaded from the bundled file');
+assert(fs.existsSync(base+'fonts/DotGothic16-Regular.woff2')&&fs.existsSync(base+'fonts/OFL-DotGothic16.txt'),'Bundled font ships with its license');
+for(const declaration of uiCss.replace(/@font-face\{[^}]*\}/g,'').matchAll(/font(?:-family)?:([^;}]+)/g))assert(declaration[1]==='inherit'||declaration[1].includes('var(--pixel)'),`unexpected font: ${declaration[0]}`);
 assert(manualHtml.includes('<b>S評価は見逃し・誤認ともにゼロの場合に。</b>'));
 assert(manualHtml.includes('条件を満たす最上位のランクになります。<small class="rank-formula">※対応率＝退場人数÷出現人数</small>'));
 // Every venue renders a background and five idols, but no miniature fans.

@@ -77,7 +77,7 @@ Capacitor設定だけ変えても、生成済みAndroidの識別子は自動変�
 `verify:android` はwww内の全ファイルのSHA-256をAndroid同梱元と比較する。フォントがwwwに出力されること自体はフォント修正側でも検証する。
 古いwwwやAndroid assetsのコピーを別ブランチから上書きしない。
 
-現時点のmainには低FPS時計とGoogle Fonts外部取得が残る。このブランチ単独では修正済みと扱わない。
+低FPS時計はv1.6で修正済み。フォントは2026-10-18にDotGothic16を `fonts/` に同梱し、Google Fontsの外部取得を廃止した。
 
 ## iOS
 

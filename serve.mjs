@@ -4,8 +4,8 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 
 const root=path.dirname(fileURLToPath(import.meta.url));
-const mime={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.png':'image/png','.jpeg':'image/jpeg'};
-const allowed=new Set(['index.html','style.css','game.js','characters.png','venues.png','security-team.png','security-sprites.png','black-shirt-fan.png','black-shirt-throw.png','black-shirt-mosh.png','black-shirt-invasion.png','rank-s.png','rank-a.png','rank-b.png','rank-c.png','rank-d.png','blond-fans.png','animal-planet-idols.png']);
+const mime={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.png':'image/png','.jpeg':'image/jpeg','.woff2':'font/woff2','.txt':'text/plain; charset=utf-8'};
+const allowed=new Set(['index.html','privacy.html','fonts/DotGothic16-Regular.woff2','fonts/OFL-DotGothic16.txt','style.css','game.js','characters.png','venues.png','security-team.png','security-sprites.png','black-shirt-fan.png','black-shirt-throw.png','black-shirt-mosh.png','black-shirt-invasion.png','rank-s.png','rank-a.png','rank-b.png','rank-c.png','rank-d.png','blond-fans.png','animal-planet-idols.png']);
 
 // Development-only response transformation. Neither the static source nor www/ is changed.
 // Do not use hostname checks: native Capacitor apps also use localhost.
