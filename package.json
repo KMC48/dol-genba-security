@@ -16,7 +16,8 @@
     "open:android": "npx cap open android",
     "open:ios": "npx cap open ios",
     "verify:android": "node scripts/verify-android.mjs",
-    "build:android:debug": "npm run sync:android && npm run verify:android && node scripts/gradle.mjs :app:assembleDebug"
+    "build:android:debug": "npm run sync:android && npm run verify:android && node scripts/gradle.mjs :app:assembleDebug",
+    "build:android:release": "npm run sync:android && npm run verify:android && node scripts/gradle.mjs :app:bundleRelease :app:assembleRelease"
   },
   "dependencies": {
     "@capacitor/android": "8.5.3",
