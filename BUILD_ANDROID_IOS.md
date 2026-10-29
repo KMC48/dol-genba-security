@@ -55,6 +55,24 @@ PRと手動実行用に `Android debug APK` workflowを用意。Node 22 / runner
 成功時はAPKとlintレポートをActionsのArtifactsへ14日間保存する。製品署名鍵・ストア認証情報は使用しない。
 実行にはリポジトリでActionsが有効であることが必要。CI成功は実機の表示・音・操作を保証しない。
 
+## Android: リリース（Google Play提出用AAB）
+
+アップロード鍵は2026-10-28に作成し、Git管理外の `android/keystore.properties` から読む（形式は下記）。鍵とパスワードはGitやCIに入れない。提出手順とPlay Consoleでの回答は [docs/PLAY_STORE_RELEASE.md](docs/PLAY_STORE_RELEASE.md)。
+
+```properties
+storeFile=C:/path/to/idoldefense-upload.jks
+storePassword=...
+keyAlias=upload
+keyPassword=...
+```
+
+```sh
+npm run build:android:release
+```
+
+Webビルド → 同期 → 同梱照合 → `:app:bundleRelease`（提出用AAB）と `:app:assembleRelease`（実機確認用APK）。出力は `android/app/build/outputs/bundle/release/app-release.aab`。
+`keystore.properties` が無い場合は、署名なしの成果物を作らずにエラーで止まる。ストアへ上げるたびに `versionCode` を増やす。
+
 ## appId（Bundle ID / applicationId）
 
 **`jp.kmccreativelab.idoldefense` で確定**（2026-10-17、所有者指定、Android慣習に合わせ小文字。旧仮値 `jp.kmccreativelab.dolgenba` から変更）。iOS・Android共通。
@@ -128,7 +146,7 @@ appIdを変更する場合は、Xcodeの `PRODUCT_BUNDLE_IDENTIFIER`（Debug/Rel
 - ~~仮のCapacitorアイコン/スプラッシュを製品素材へ置換~~ Androidは2026-10-11に置換済み（原画は `assets/icon.png`）。iOSも2026-10-11にAppIcon/Splashを置換済み
 - バックアップ設定（生成時のallowBackup=true）と端末内保存の説明・実挙動の整合、INTERNET権限、データ申告の確認
 - appId、versionCode、素材権利・名称・プライバシーポリシー・年齢区分の所有者確認
-- Android署名付きAAB、内部テスト、ストア提出
+- ~~Android署名付きAAB~~（2026-10-28済、v1.6.0 / versionCode 1）、内部テスト、ストア提出
 - ~~iOSプロジェクト生成~~（2026-10-11済）、iOS実機QA、署名Archive/TestFlight、ストア提出
 - iOSのセーフエリア対応（Simulatorでヘッダーがステータスバー／Dynamic Islandに重なる）
 
