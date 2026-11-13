@@ -1,3 +1,14 @@
+# Android：2回目以降のプレイ前に動画広告（Unity Ads）/ 2026-11-14（Windows）
+
+- ブランチ `feature/unity-ads-interstitial`（main `7b82e0c` から）。広告なしの公開版 v1.6.0 は注釈付きタグ `v1.6.0-no-ads`（ローカル、未push）で保存。
+- 仕様: アプリ起動ごとに1回目は広告なし、2回目以降は「出動」「再挑戦」の押下後にインタースティシャル動画広告を1本表示してから開始。広告が未設定・未読込・失敗・ブリッジ無応答（120秒）のときは広告なしで開始し、プレイを妨げない。広告中の連打は無視し、広告中に画面を離れた場合は裏で開始しない。Web版・iOSでは表示しない。
+- 戻し方: `game.js` の `PRE_PLAY_AD_ENABLED=false` で元の挙動。ネイティブ側は `res/values/unity_ads.xml` の Game ID が空なら初期化しない（現在は空＝広告オフ）。
+- ネイティブ: ローカルプラグイン `UnityAdsPlugin`（名前 `UnityAdsBridge`）を `MainActivity` で登録。`com.unity3d.ads:unity-ads:4.21.0`（2026-10-01公開。4.22.0は11-13公開のため見送り）。デバッグ可能ビルドはテスト広告モード。
+- `npm run check`、`npm test`（38件）、`node test-android-back.cjs`（29件）、`node --test test-sharing.cjs test-ads.cjs`（14件、うち広告5件）PASS。`npm run build` 成功。
+- `npm run build:android:debug`（ANDROID_HOME=%LOCALAPPDATA%\Android\Sdk）BUILD SUCCESSFUL、APK約36MB。マージ後のマニフェストに `AD_ID`、`ACCESS_ADSERVICES_ATTRIBUTION/TOPICS` 等が追加されることを確認。
+- privacy.html を Android版の広告（Unity Ads）に合わせて改訂（最終更新 2026-11-14）。main へ取り込むと GitHub Pages に反映されるため、広告版の公開と同時に取り込む。
+- 未実施: Unity の Game ID 設定、エミュレータ/実機でのテスト広告表示、署名AAB、Play Console の「広告を含む」・データセーフティ・広告ID申告の更新。
+
 # 結果画面のSNS共有 / 2026-10-19
 
 - 最新main `bd6e551`（Mac側の会場拡大・縦固定・フォント同梱を含む）から実装。退場人数の下にドット調の「結果を報告(シェア)」を配置。
