@@ -203,3 +203,14 @@ Canvasを画像化してモッシュ接触/離反、双方向ハートを目視�
 - [ ] Release署名ビルド、TestFlight/内部テストで起動
 
 既知課題: dtを最大0.05秒に制限しているため、極端に低FPSだと60秒が実時間より長くなる。停止時間を除いた単調時計への移行を検討する。
+
+## Android リリースAAB（2026-10-28 / Windows 11）
+
+- 対象: main `f00cfb0`（PR #8〜#16）＋リリース署名設定。PR #17（AdMob下書き）は含めない。
+- 環境: Node.js 24.18.0、JDK 21（Temurin 21.0.12）、Android SDK 36、Gradle 8.14.3。
+- `npm run check` / `npm test`（38件成功）/ `npm run build:android:release` 成功（21ファイル照合PASS、bundleRelease・assembleRelease、lintVitalRelease）。
+- AAB: jarsignerで検証済み。APK: apksigner v2で検証済み。署名者は `CN=KMC Creative Lab, O=KMC Creative Lab, C=JP`、SHA-256 `FE:AF:C5:46:…:1D:23:05`（アップロード鍵と一致）。
+- aapt2: `jp.kmccreativelab.idoldefense`、versionCode 1、1.6.0、targetSdk 36、debuggableなし、権限はINTERNETのみ。ネイティブライブラリなし。
+- `keystore.properties` が無いとbundleReleaseがエラーで止まることを確認。
+- 未実施: Android実機QA、Play Consoleへのアップロード、内部テスト・クローズドテスト、審査。
+
