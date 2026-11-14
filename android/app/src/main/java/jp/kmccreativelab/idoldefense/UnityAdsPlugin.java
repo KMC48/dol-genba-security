@@ -26,6 +26,36 @@ public class UnityAdsPlugin extends Plugin {
     private volatile boolean loading;
     private volatile boolean ready;
     private volatile boolean showing;
+    // Unity reports completion while its end card can still cover the app. The JS side starts timed play
+    // as soon as it gets the answer, so hold the answer until this activity is in the foreground again.
+    private volatile boolean appInForeground = true;
+    private Runnable pendingAnswer;
+
+    @Override
+    protected void handleOnPause() {
+        appInForeground = false;
+    }
+
+    @Override
+    protected void handleOnResume() {
+        appInForeground = true;
+        Runnable answer = pendingAnswer;
+        pendingAnswer = null;
+        if (answer != null) answer.run();
+    }
+
+    /** Runs now if the app is visible, otherwise when it next resumes (always on the main thread). */
+    private void answerWhenVisible(Runnable answer) {
+        Activity activity = getActivity();
+        if (activity == null) {
+            answer.run();
+            return;
+        }
+        activity.runOnUiThread(() -> {
+            if (appInForeground) answer.run();
+            else pendingAnswer = answer;
+        });
+    }
 
     @Override
     public void load() {
@@ -101,8 +131,8 @@ public class UnityAdsPlugin extends Plugin {
             private void finish(boolean shown, String reason) {
                 if (!settled.compareAndSet(false, true)) return;
                 showing = false;
-                resolve(call, shown, reason);
                 loadInterstitial();
+                answerWhenVisible(() -> resolve(call, shown, reason));
             }
         }));
     }

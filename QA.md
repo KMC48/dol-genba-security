@@ -1,3 +1,13 @@
+# Android：Unity Ads 実機相当の確認とバグ修正 / 2026-11-14（Windows・エミュレータ）
+
+- Unity ダッシュボードでアプリ登録（子ども向けでない、Developer Data 共有オフ）。Game ID `800437802`、プレースメント `BP_Interstitial_Android`（新ダッシュボードは名前を自動採番）を `unity_ads.xml` に設定。
+- エミュレータ `oshi_shindan_pixel`（Android, 1080×2400）＋デバッグAPK。ログで「Initializing SDK 4.21.0 … in test mode」「Successfully loaded ad」を確認。WebView を CDP で操作して検証。
+- **バグ1（修正）**：広告を閉じた直後、60秒のプレイが一瞬で終わり結果画面（0/54人）になった。広告中は requestAnimationFrame が止まるため、最初のフレームが広告の時間（約86秒）をまとめて消費していた。→ `resetGame()` で `lastFrame` を現在時刻に戻す。
+- **バグ2（修正）**：Unity は動画本編の終了で完了を返し、エンドカード（✕で閉じる画面）がまだ表示中でもゲームが裏で始まりうる。安全タイマー（120秒）が先に切れた場合も同様。→ ネイティブ側は画面が前面に戻ってから結果を返す（`handleOnResume`）、JS 側も `document.hidden` の間は開始を待つ（`whenVisible`）。広告表示中に WebView の `visibilityState` が `hidden` になることを実測で確認。
+- 修正後：1回目のプレイは広告なしで即開始、2回目は「出動」でテスト広告→✕で閉じる→3秒カウントダウン→60秒開始（閉じて5.4秒後に残り58秒＝計算どおり）。広告中は出動ボタン無効。
+- `npm run check`、`npm test`（38件）、`node test-android-back.cjs`（29件）、`node --test test-sharing.cjs test-ads.cjs`（17件、広告8件：上記2バグの回帰テストを追加。修正を外すと失敗することを確認）PASS。`npm run build:android:debug` 成功。
+- 未実施：実機、署名AAB、本番広告での表示（テストモードのみ）。
+
 # Android：2回目以降のプレイ前に動画広告（Unity Ads）/ 2026-11-14（Windows）
 
 - ブランチ `feature/unity-ads-interstitial`（main `7b82e0c` から）。広告なしの公開版 v1.6.0 は注釈付きタグ `v1.6.0-no-ads`（ローカル、未push）で保存。

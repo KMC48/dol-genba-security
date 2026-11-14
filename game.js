@@ -135,6 +135,9 @@ function spawnScheduledFans(){
  if(!state.rareSpawned&&state.elapsed>=state.rareAt){const f=spawnFan(false,6);if(f){announce('4秒勝負！ 繋がりオタク出現',1.4);setText('statusLine','残り4秒！ 確保で10倍得点、見逃すと1人脱退・−1,000点。');log('RARE','アイドルとハートの相互通信…！ 見逃すと1人脱退・−1,000点。');tone(1047,.15);tone(1319,.2,'square',.03,.15)}}
 }
 function resetGame(){
+ // A new play starts now: time spent before it (a video ad, or menus while the app was backgrounded
+ // and requestAnimationFrame was stopped) must not be consumed by the first frame.
+ lastFrame=performance.now();
  state={remaining:60,elapsed:0,count:0,score:0,combo:0,maxCombo:0,lastEject:-100,missed:0,mistakes:0,charge:0,breakdown:TYPES.map(()=>0),faceBreakdown:TYPES.map(()=>({})),crowdClock:2.5,crowdTarget:5,rareAt:rand(24,36),rareSpawned:false,rarePoints:0,rarePenalty:0,idolDeparture:null,invasionSeen:false,fans:[],effects:[],nextId:1,guard:{x:320,y:672},queue:[],spawnClock:0,countdown:3,lastBeep:4,rush:false,rushCycle:0,announcement:0,logs:[],pulse:0,anim:0,hudClock:0};
  for(let i=0;i<5;i++)spawnFan(true);
  mode='countdown';document.body.classList.add('playing');$('menu').classList.add('hidden');$('play').classList.remove('hidden');
@@ -150,11 +153,14 @@ const PRE_PLAY_AD_ENABLED=true,PRE_PLAY_AD_FREE_PLAYS=1,PRE_PLAY_AD_TIMEOUT_MS=1
 function nativeAds(){if(!PRE_PLAY_AD_ENABLED)return null;const cap=window.Capacitor;return cap?.isNativePlatform?.()&&cap.isPluginAvailable?.('UnityAdsBridge')!==false?cap.Plugins?.UnityAdsBridge:null}
 function setStartBusy(busy){for(const id of ['startBtn','retryBtn'])$(id).disabled=busy}
 function showPrePlayAd(ads){return Promise.race([Promise.resolve().then(()=>ads.showInterstitial()).catch(()=>null),new Promise(done=>setTimeout(done,PRE_PLAY_AD_TIMEOUT_MS))])}
+// The ad (or its end card) covers the WebView and the page reports hidden. Never start the 60 s play
+// behind it — e.g. when the safety timeout fires while the player still looks at the end card.
+function whenVisible(){return !document.hidden?Promise.resolve():new Promise(done=>{const on=()=>{if(document.hidden)return;document.removeEventListener('visibilitychange',on);done()};document.addEventListener('visibilitychange',on)})}
 function startGame(){if(assetError){setText('missionBrief','画像を読み込めませんでした。ページを再読み込みしてください。');return}if(!assetReady){setText('missionBrief','現場を準備しています。少しお待ちください。');return}
  if(prePlayAdBusy)return;const ads=nativeAds();
  if(playsThisLaunch>=PRE_PLAY_AD_FREE_PLAYS&&ads?.showInterstitial){
   const from=mode;prePlayAdBusy=true;setStartBusy(true);
-  showPrePlayAd(ads).finally(()=>{prePlayAdBusy=false;setStartBusy(false);if(mode!==from)return;playsThisLaunch++;resetGame()});return}
+  showPrePlayAd(ads).then(whenVisible).finally(()=>{prePlayAdBusy=false;setStartBusy(false);if(mode!==from)return;playsThisLaunch++;resetGame()});return}
  playsThisLaunch++;resetGame()}
 function beginPlay(){mode='playing';$('countdown').classList.add('hidden');spawnFan(false,3);spawnFan(false);if(chosenVenue>1)spawnFan(false);if(GROUPS[chosenGroup].spawnRate)for(let i=0;i<4;i++)spawnFan(false);state.spawnClock=1.7;announce('警備開始！ 違反者をタップ',2.2);tone(880,.2)}
 function updateHud(){if(!state)return;setText('time',Math.ceil(state.remaining));$('time').insertAdjacentHTML('beforeend','<small>秒</small>');$('time').parentElement.classList.toggle('urgent',state.remaining<=10);setText('count',state.count);$('count').insertAdjacentHTML('beforeend','<small>人</small>');setText('score',(state.score<0?'−':'')+String(Math.abs(state.score)).padStart(5,'0'));setText('chargeText',Math.floor(state.charge)+'%');$('chargeFill').style.width=state.charge+'%';$('specialBtn').disabled=state.charge<100||mode!=='playing';$('specialBtn').querySelector('small').textContent=state.charge>=100?'READY!':'CHARGE';$('combo').classList.toggle('hidden',state.combo<2);setText('combo',`${state.combo} COMBO ×${(1+Math.min(state.combo-1,20)*.1).toFixed(1)}`)}

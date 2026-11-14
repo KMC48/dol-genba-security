@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Unity Ads dashboard > Projects > (this game) > Game ID for Android. Empty = ads disabled, game still plays. -->
-    <string name="unity_ads_game_id" translatable="false"></string>
+    <string name="unity_ads_game_id" translatable="false">800437802</string>
     <!-- Ad unit (placement) ID for the video shown before the 2nd and later plays. -->
-    <string name="unity_ads_interstitial_placement" translatable="false">Interstitial_Android</string>
+    <string name="unity_ads_interstitial_placement" translatable="false">BP_Interstitial_Android</string>
 </resources>
