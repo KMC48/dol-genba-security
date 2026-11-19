@@ -26,7 +26,7 @@ test('web share uses the displayed result and canonical URL; no automatic share 
  assert.equal(calls.length,0);await el('shareResultBtn').onclick();
  assert.equal(calls.length,1);assert.equal(calls[0].url,'https://kmc48.github.io/dol-genba-security/');
  assert.match(calls[0].text,/^厄介オタクを66人退場させた！/);assert.match(calls[0].text,/地下ライブハウス × 彗星ピクセルズ/);
- assert.match(calls[0].text,/A評価「頼れる現場リーダー」 \/ 19,800点/);assert.match(calls[0].text,/#ドル現場防衛戦/);
+ assert.match(calls[0].text,/A評価「頼れる現場リーダー」 \/ 19,800点/);assert.match(calls[0].text,/#アイドル現場防衛戦/);
  assert(!calls[0].text.includes('undefined'));assert.equal(qa.getState().count,66);assert.equal(el('shareResultBtn').disabled,false);
 });
 test('native Share bridge takes precedence over browser APIs on iOS and Android',async()=>{

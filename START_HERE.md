@@ -1,4 +1,4 @@
-# ドル現場防衛戦 — Claude Code引き継ぎ案内
+# アイドル現場防衛戦（旧：ドル現場防衛戦）— Claude Code引き継ぎ案内
 
 基準: Web v1.5（未公開の修正版）/ KMC Creative Lab / 2026-10-14
 公開: https://kmc48.github.io/dol-genba-security/

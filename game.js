@@ -145,23 +145,30 @@ function resetGame(){
  $('resultDialog').close();$('pauseDialog').close();$('countdown').classList.remove('hidden');$('combo').classList.add('hidden');$('announcement').classList.add('hidden');
  log('HQ','配置につきました。楽しい現場を守ります。');updateHud();window.scrollTo({top:0,behavior:'instant'});audioCtx?.resume().catch(()=>{});canvas.focus({preventScroll:true});
 }
-// Video ad before the 2nd and later plays of each app launch (Android/iOS app only, never on the web).
+// Video ad before some plays (Android app only, never on the web). Per app launch the first FREE_PLAYS plays
+// are ad-free; after that an ad is due once every EVERY_PLAYS plays (plays 3, 6, 9… with the defaults) and only
+// when MIN_GAP_MS has passed since the last ad was shown, so quick retries are not interrupted.
+// An ad that was not shown (not ready / failed) does not count, so the next play tries again.
 // The ad must never block play: no plugin, not loaded, failed or a silent bridge all fall through to the game.
 // false = original no-ad behavior (every play starts at once). The ad-free release is also tagged v1.6.0-no-ads.
-const PRE_PLAY_AD_ENABLED=true,PRE_PLAY_AD_FREE_PLAYS=1,PRE_PLAY_AD_TIMEOUT_MS=120000;let playsThisLaunch=0,prePlayAdBusy=false;
+const PRE_PLAY_AD_ENABLED=true,PRE_PLAY_AD_FREE_PLAYS=2,PRE_PLAY_AD_EVERY_PLAYS=3,PRE_PLAY_AD_MIN_GAP_MS=180000,PRE_PLAY_AD_TIMEOUT_MS=120000;
+let playsThisLaunch=0,playsSinceAd=0,lastAdAt=null,prePlayAdBusy=false;
+function prePlayAdDue(){return lastAdAt===null?playsThisLaunch>=PRE_PLAY_AD_FREE_PLAYS:playsSinceAd>=PRE_PLAY_AD_EVERY_PLAYS&&performance.now()-lastAdAt>=PRE_PLAY_AD_MIN_GAP_MS}
 // iOS has no native ad plugin, so isPluginAvailable keeps iOS on the original no-ad path.
 function nativeAds(){if(!PRE_PLAY_AD_ENABLED)return null;const cap=window.Capacitor;return cap?.isNativePlatform?.()&&cap.isPluginAvailable?.('UnityAdsBridge')!==false?cap.Plugins?.UnityAdsBridge:null}
 function setStartBusy(busy){for(const id of ['startBtn','retryBtn'])$(id).disabled=busy}
-function showPrePlayAd(ads){return Promise.race([Promise.resolve().then(()=>ads.showInterstitial()).catch(()=>null),new Promise(done=>setTimeout(done,PRE_PLAY_AD_TIMEOUT_MS))])}
+// A bridge that stays silent for the whole timeout most likely showed the ad, so that counts as shown.
+function showPrePlayAd(ads){return Promise.race([Promise.resolve().then(()=>ads.showInterstitial()).catch(()=>null),new Promise(done=>setTimeout(()=>done({shown:true,reason:'timeout'}),PRE_PLAY_AD_TIMEOUT_MS))])}
 // The ad (or its end card) covers the WebView and the page reports hidden. Never start the 60 s play
 // behind it — e.g. when the safety timeout fires while the player still looks at the end card.
 function whenVisible(){return !document.hidden?Promise.resolve():new Promise(done=>{const on=()=>{if(document.hidden)return;document.removeEventListener('visibilitychange',on);done()};document.addEventListener('visibilitychange',on)})}
 function startGame(){if(assetError){setText('missionBrief','画像を読み込めませんでした。ページを再読み込みしてください。');return}if(!assetReady){setText('missionBrief','現場を準備しています。少しお待ちください。');return}
  if(prePlayAdBusy)return;const ads=nativeAds();
- if(playsThisLaunch>=PRE_PLAY_AD_FREE_PLAYS&&ads?.showInterstitial){
+ if(ads?.showInterstitial&&prePlayAdDue()){
   const from=mode;prePlayAdBusy=true;setStartBusy(true);
-  showPrePlayAd(ads).then(whenVisible).finally(()=>{prePlayAdBusy=false;setStartBusy(false);if(mode!==from)return;playsThisLaunch++;resetGame()});return}
- playsThisLaunch++;resetGame()}
+  showPrePlayAd(ads).then(r=>{if(r?.shown){lastAdAt=performance.now();playsSinceAd=0}}).then(whenVisible).finally(()=>{
+   prePlayAdBusy=false;setStartBusy(false);if(mode!==from)return;playsThisLaunch++;playsSinceAd++;resetGame()});return}
+ playsThisLaunch++;playsSinceAd++;resetGame()}
 function beginPlay(){mode='playing';$('countdown').classList.add('hidden');spawnFan(false,3);spawnFan(false);if(chosenVenue>1)spawnFan(false);if(GROUPS[chosenGroup].spawnRate)for(let i=0;i<4;i++)spawnFan(false);state.spawnClock=1.7;announce('警備開始！ 違反者をタップ',2.2);tone(880,.2)}
 function updateHud(){if(!state)return;setText('time',Math.ceil(state.remaining));$('time').insertAdjacentHTML('beforeend','<small>秒</small>');$('time').parentElement.classList.toggle('urgent',state.remaining<=10);setText('count',state.count);$('count').insertAdjacentHTML('beforeend','<small>人</small>');setText('score',(state.score<0?'−':'')+String(Math.abs(state.score)).padStart(5,'0'));setText('chargeText',Math.floor(state.charge)+'%');$('chargeFill').style.width=state.charge+'%';$('specialBtn').disabled=state.charge<100||mode!=='playing';$('specialBtn').querySelector('small').textContent=state.charge>=100?'READY!':'CHARGE';$('combo').classList.toggle('hidden',state.combo<2);setText('combo',`${state.combo} COMBO ×${(1+Math.min(state.combo-1,20)*.1).toFixed(1)}`)}
 function log(who,line){if(!state)return;state.logs.unshift({who,line});state.logs=state.logs.slice(0,5);$('liveLog').innerHTML=state.logs.map(l=>`<div class="log-entry"><small>${l.who}</small>${l.line}</div>`).join('')}
@@ -255,7 +262,7 @@ const GAME_SHARE_URL='https://kmc48.github.io/dol-genba-security/';
 let resultShareBusy=false;
 function resultShareData(){
  if(mode!=='result'||!state)return null;
- return {title:'ドル現場防衛戦｜現場報告',text:`厄介オタクを${state.count}人退場させた！\n${VENUES[chosenVenue].name} × ${GROUPS[chosenGroup].name}\n${state.rank}評価「${RANKS[state.rank].title}」 / ${state.score.toLocaleString('ja-JP')}点\n#ドル現場防衛戦 #現場報告`,url:GAME_SHARE_URL};
+ return {title:'アイドル現場防衛戦｜現場報告',text:`厄介オタクを${state.count}人退場させた！\n${VENUES[chosenVenue].name} × ${GROUPS[chosenGroup].name}\n${state.rank}評価「${RANKS[state.rank].title}」 / ${state.score.toLocaleString('ja-JP')}点\n#アイドル現場防衛戦 #現場報告`,url:GAME_SHARE_URL};
 }
 function showShareFallback(data,message){
  $('shareText').value=`${data.text}\n${data.url}`;$('shareFallback').hidden=false;setText('shareStatus',message);

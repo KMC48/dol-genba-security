@@ -1,4 +1,6 @@
-# ドル現場防衛戦 — IDOL SECURITY
+# アイドル現場防衛戦 — IDOL SECURITY
+
+（2026-11 に「ドル現場防衛戦」から改名。リポジトリ名・URL・パッケージ名は従来のまま）
 
 KMC Creative Lab / Web版 v1.5 / 2026-10-14
 

@@ -1,3 +1,11 @@
+# Android：広告頻度の変更とタイトル改名「アイドル現場防衛戦」/ 2026-11-20（Windows）
+
+- 広告頻度（ユーザー決定）：起動ごとに1・2回目は広告なし、3回目のプレイ前に初回の広告。以降は「前回の広告から3プレイ目」かつ「前回の広告から3分以上」の両方を満たしたときだけ表示（定数 `PRE_PLAY_AD_FREE_PLAYS=2`、`PRE_PLAY_AD_EVERY_PLAYS=3`、`PRE_PLAY_AD_MIN_GAP_MS=180000`）。広告が表示されなかった場合（未読込・失敗）は数えず、次のプレイで再挑戦。120秒無応答は表示済みとみなす。
+- タイトル改名（ユーザー決定、広告版と同時）：`capacitor.config.json` の appName、`strings.xml`（app_name / title_activity_main）、iOS `Info.plist`、`index.html` の `<title>`、シェア文の見出しとハッシュタグ（`#アイドル現場防衛戦`）、`test-sharing.cjs`、`privacy.html`（見出し・説明・フッター、本文に旧名称を併記、広告頻度の記述、最終更新 2026-11-20）、README・START_HERE の見出し。リポジトリ名・URL・パッケージ名・過去の記録類は変更しない。タイトル画面のロゴも「アイドル現場／防衛戦」の2段に変更（ユーザー決定）。メニュー側の `intro-copy h1`（常に非表示の旧マークアップ）も同じく変更。ブラウザで幅320・360px（スマホ）とデスクトップ幅を確認し、はみ出し・横スクロールなし。
+- `npm run check`、`npm test`（38件）、`node test-android-back.cjs`（29件）、`node --test test-sharing.cjs test-ads.cjs`（19件、広告10件：頻度・3分間隔・未表示時の再挑戦を追加）PASS。
+- `npm run build:android:debug` 成功（`ANDROID_HOME` を SDK `%LOCALAPPDATA%\Android\Sdk` に設定して実行）。APK の aapt2 badging でラベル「アイドル現場防衛戦」、package `jp.kmccreativelab.idoldefense`、APK 内 game.js に新しい頻度定数、index.html に新ロゴを確認。
+- 未実施：エミュレータ／実機での表示確認（ホーム画面のアプリ名の見え方、3回目の広告）、署名AAB（versionCode 2）、Play Console の掲載名・説明文・スクショ変更と広告関連の申告。
+
 # Android：Unity Ads 実機相当の確認とバグ修正 / 2026-11-14（Windows・エミュレータ）
 
 - Unity ダッシュボードでアプリ登録（子ども向けでない、Developer Data 共有オフ）。Game ID `800437802`、プレースメント `BP_Interstitial_Android`（新ダッシュボードは名前を自動採番）を `unity_ads.xml` に設定。
