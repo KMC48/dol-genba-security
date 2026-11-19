@@ -1,3 +1,13 @@
+# Android：署名AAB v1.7.0（versionCode 2、広告版・改名版）/ 2026-11-20（Windows）
+
+- versionCode 1→2、versionName 1.6.0→1.7.0（`package.json`／`package-lock.json` も 1.7.0）。画面表示「VER. 1.7」、フッターのローマ字「IDOL GENBA BOUEISEN」、キャッシュ用クエリ `?v=1.7.0-20261120-ads`。
+- リリース署名：`release/play-store-v1.6.0` の 512ad2a（main 未取り込み）から `android/app/build.gradle` の署名設定（Git 管理外の `android/keystore.properties` を UTF-8 で読む、無ければ bundleRelease/assembleRelease を止める）と `npm run build:android:release` を取り込んだ。鍵・パスワードは Git に入れていない。
+- `npm run check`、`npm test`、`node --test test-sharing.cjs test-ads.cjs` PASS → `npm run build:android:release` BUILD SUCCESSFUL。
+- 確認（aapt2 / apksigner / keytool）：package `jp.kmccreativelab.idoldefense`、versionCode 2、versionName 1.7.0、ラベル「アイドル現場防衛戦」、debuggable なし（＝Unity はテストモードにならない）。署名 `CN=KMC Creative Lab, O=KMC Creative Lab, C=JP`、SHA-256 `FE:AF:C5:46:…:23:05`（v1.6.0 と同じアップロード鍵）。権限に `AD_ID`、`ACCESS_ADSERVICES_TOPICS/ATTRIBUTION` ほか Unity SDK 由来のもの。
+- ネイティブライブラリ：Unity の `libunitycoherencenative.so`（4 ABI）。`zipalign -c -P 16` 成功、arm64/x86_64 の LOAD セグメントは 16KB 境界 → 16KB ページサイズ要件を満たす。
+- 提出ファイル：デスクトップ `ドル現場防衛線\GooglePlay提出\idoldefense-v1.7.0-vc2-release.aab`（SHA-256 `9684e643…19e4e4`）と同じ中身の `…-実機確認用.apk`。
+- 未実施：実機での確認（リリース版＝本番広告。本番広告は開発者がタップしない）、Play Console へのアップロードと申告。
+
 # Android：エミュレータで広告頻度・改名・推し診断の広告を確認 / 2026-11-20（Windows・エミュレータ）
 
 - 環境：エミュレータ `oshi_shindan_pixel`（1080×2400）、コミット `9a35b0b` のデバッグAPK（テストモード、Game ID 800437802）。WebView を CDP で操作、広告の✕は adb の tap。
