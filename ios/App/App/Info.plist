@@ -69,7 +69,7 @@
 	<key>UnityAdsGameId</key>
 	<string>800446110</string>
 	<key>UnityAdsInterstitialPlacement</key>
-	<string></string>
+	<string>BP_Interstitial_iOS</string>
 	<key>NSUserTrackingUsageDescription</key>
 	<string>お客様に合った広告を表示するために使用します。許可しなくても、ゲームはすべての機能を遊べます。</string>
 	<key>SKAdNetworkItems</key>

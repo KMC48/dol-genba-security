@@ -7,7 +7,10 @@
 - Simulator 向け Debug ビルド成功（警告は Unity の旧 API の非推奨のみ。Android 版と同じ API）。アプリ内に `Frameworks/UnityAds.framework/PrivacyInfo.xcprivacy` が入ることを確認。
 - Placement 空の状態：起動・タイトル表示で ATT ダイアログは出ない（想定どおり）。iPhone 17 Pro Max で1・2回目のプレイが広告なしで始まり終了まで進むことを確認。3回目以降（広告の呼び出しが起きる回）とテスト広告の確認は Placement 受領後。
 - タイトルの新しいスクリーンショット（「アイドル現場防衛戦」VER. 1.7）を iPhone 6.9インチ・iPad 13インチで撮り直し（`store/screenshots/*/01-title.png`）。
-- 未実施：テスト広告での確認（§4-3）、実機、Archive・TestFlight、Privacy Report（Xcode の Organizer で作成）。
+- Placement `BP_Interstitial_iOS` を設定（オーナーから受領）。
+- 修正：Capacitor 8 の雛形は `SceneDelegate.swift` で `CAPBridgeViewController()` を直接作るため、Storyboard の変更だけではプラグインが登録されなかった。`SceneDelegate` を `MainViewController()` に変更して解決（Storyboard の変更も指示どおり残す）。
+- iPhone 17 Pro Max Simulator（Debug＝テストモード）：タイトル表示後に ATT ダイアログが1回出る → 「許可しない」でも Unity Ads 初期化・テスト広告の読み込みに成功。確認用に同梱コピーの `PRE_PLAY_AD_FREE_PLAYS` だけを0にした一時ビルド（ソースは2のまま）で、「出動」→ テスト動画広告 → エンドカードを15秒開いたままでも裏でゲームは始まらない → ✕（エンドカード、続くテスト用 App Store 画面の2枚）で閉じるとカウントダウン後に60秒から開始。
+- 未実施：3回目・3分条件の通し確認（JS 側の頻度は Node テストと Android で確認済み・変更なし）、実機、Archive・TestFlight、Privacy Report（Xcode の Organizer で作成）。
 
 # Android：署名AAB v1.7.0（versionCode 2、広告版・改名版）/ 2026-11-20（Windows）
 
