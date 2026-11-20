@@ -1,3 +1,14 @@
+# iOS：Unity Ads 組み込み v1.7.0（ビルド2）/ 2026-11-20（Mac・MAC-005）
+
+環境: macOS 26.5.2 / Xcode 26.5 / iOS Simulator 26.5（iPhone 17 Pro Max、iPad Air 13-inch (M4)）/ Node.js 26.8.1。ブランチ `ios/unity-ads-20261120`（`feature/unity-ads-interstitial` `b525e59` から）。
+
+- `npm ci` / `npm run check` / `npm test`（38件）/ `node test-android-back.cjs`（29件）/ `node --test test-sharing.cjs test-ads.cjs`（19件）すべて PASS。`npm run sync:ios` 成功。
+- Unity Ads iOS SDK 4.21.0（公式 XCFramework、SHA-256 照合）を App ターゲットに追加。Swift プラグイン `UnityAdsBridge` を `MainViewController` で登録。Info.plist に Game ID 800446110・ATT 文言・SKAdNetwork 76件。Placement は未作成のため空。MARKETING_VERSION 1.7.0 / CURRENT_PROJECT_VERSION 2。`game.js` は変更なし。
+- Simulator 向け Debug ビルド成功（警告は Unity の旧 API の非推奨のみ。Android 版と同じ API）。アプリ内に `Frameworks/UnityAds.framework/PrivacyInfo.xcprivacy` が入ることを確認。
+- Placement 空の状態：起動・タイトル表示で ATT ダイアログは出ない（想定どおり）。iPhone 17 Pro Max で1・2回目のプレイが広告なしで始まり終了まで進むことを確認。3回目以降（広告の呼び出しが起きる回）とテスト広告の確認は Placement 受領後。
+- タイトルの新しいスクリーンショット（「アイドル現場防衛戦」VER. 1.7）を iPhone 6.9インチ・iPad 13インチで撮り直し（`store/screenshots/*/01-title.png`）。
+- 未実施：テスト広告での確認（§4-3）、実機、Archive・TestFlight、Privacy Report（Xcode の Organizer で作成）。
+
 # Android：署名AAB v1.7.0（versionCode 2、広告版・改名版）/ 2026-11-20（Windows）
 
 - versionCode 1→2、versionName 1.6.0→1.7.0（`package.json`／`package-lock.json` も 1.7.0）。画面表示「VER. 1.7」、フッターのローマ字「IDOL GENBA BOUEISEN」、キャッシュ用クエリ `?v=1.7.0-20261120-ads`。

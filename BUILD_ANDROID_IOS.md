@@ -140,3 +140,11 @@ appIdを変更する場合は、Xcodeの `PRODUCT_BUNDLE_IDENTIFIER`（Debug/Rel
 - https://capacitorjs.com/docs/config
 
 提出時のストア要件は提出直前に再確認する。
+
+## iOS の広告（Unity Ads、2026-11-20 Mac）
+
+- SDK：Unity Ads iOS **4.21.0**（Android と同じ版）。Unity 公式の配布は CocoaPods か手動の XCFramework のみ（SwiftPM なし）のため、公式リリースの `UnityAds.zip` を `scripts/fetch-unity-ads-ios.mjs` が SHA-256 で照合して `ios/App/Frameworks/UnityAds.xcframework` に展開する（59MB のため Git 管理外）。`npm run sync:ios` の最後に自動で実行される（単独は `npm run ios:unity-ads`）。
+- App ターゲットに XCFramework を「Embed & Sign」で追加（静的フレームワーク。Xcode がコードをアプリに静的リンクし、`PrivacyInfo.xcprivacy` 等のリソースだけを `Frameworks/UnityAds.framework` に入れる）。`ios/App/CapApp-SPM/Package.swift` は cap sync で再生成されるため触らない。
+- プラグイン：`ios/App/App/UnityAdsPlugin.swift`（JS 名 `UnityAdsBridge`、`showInterstitial()` は reject せず `{shown, reason}`）。`MainViewController.swift` で登録し、`Main.storyboard` の View Controller を `MainViewController`（module App）に変更。
+- 設定は Info.plist：`UnityAdsGameId`（800446110）、`UnityAdsInterstitialPlacement`（**Unity ダッシュボードで作成後に記入。空の間は広告もトラッキング許可も出ない**）、`NSUserTrackingUsageDescription`、`SKAdNetworkItems`（Unity ダッシュボードの76件）。
+- トラッキング許可（ATT）はアプリがアクティブで WebView の読み込み（最初の画面＝タイトル）が終わってから約1秒後に1回だけ。結果に関わらず Unity Ads を初期化する。Debug ビルドはテスト広告。
