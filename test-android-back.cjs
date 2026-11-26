@@ -267,12 +267,12 @@ const releaseURLs=[
   'file:///android_asset/public/index.html',
 ];
 function assertLocked(g) {
-  assert.equal(g.el('groups').children[4].disabled,true);
+  assert.equal(g.el('groups').children[5].disabled,true); // hidden card is last, after 夜明けレイズ
   assert.match(g.el('groups').innerHTML,/？？？[\s\S]*全アイドルA評価以上で出演/);
   assert.doesNotMatch(g.el('groups').innerHTML,/アニマルプラネット/);
 }
 function selectAnimal(g) {
-  const card=g.el('groups').children[4];assert.equal(card.disabled,false);card.click();
+  const card=g.el('groups').children[5];assert.equal(card.disabled,false);card.click();
   assert.equal(g.state().chosenGroup,4);assert.match(g.el('missionBrief').textContent,/動物園状態/);
 }
 function completeMission(g,group,venue=0,result={}) {
@@ -370,7 +370,7 @@ test('only an explicitly enabled dev server serves a temporary animal preview',a
       const storage=new Map([[S_CLEAR_KEY,'[0,1,2]']]);
       const g=await load({gameSource,url,storage,search:'?unlock=animal'});g.el('titleMute').click();
       if(debugUnlock) {
-        selectAnimal(g);completeMission(g,4);assert.equal(g.el('rank').textContent,'S');
+        selectAnimal(g);completeMission(g,5); // card position 5 = hidden lineup (GROUPS[4])assert.equal(g.el('rank').textContent,'S');
         assert.equal(storage.get(S_CLEAR_KEY),'[0,1,2]','hidden S cannot fill a regular clear');
         assert.equal(storage.has(QUALIFYING_CLEAR_KEY),false,'preview play does not save a regular A/S clear');
         assertLocked(await load({storage,url,search:'?unlock=animal'}));
