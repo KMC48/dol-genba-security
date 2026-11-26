@@ -1,3 +1,12 @@
+# Android：署名AAB v1.7.1（versionCode 4、イエッタイガー入り）/ 2026-11-27（Windows）
+
+- `feat/yoake-shout`（大量発生直前の「イエッタイガー！」）を取り込み。衝突は resetGame の1行（広告対策の `lastFrame` リセットを残し、`state` は叫びの項目入りを採用）。
+- iOS 1.7.1（3）は MAC-008 でアップロード済みのため、Android versionCode 3→4、iOS ビルド 3→4（versionName／MARKETING_VERSION は 1.7.1 のまま）。キャッシュ用クエリ `?v=1.7.1-20261127-shout`。
+- `npm test`（38件＋ゲームロジック）、`node --test test-sharing.cjs test-ads.cjs`（19件）PASS → `npm run build:android:release`（ANDROID_HOME=%LOCALAPPDATA%\Android\Sdk）BUILD SUCCESSFUL。
+- 確認：versionCode 4、versionName 1.7.1、ラベル「アイドル現場防衛戦」、debuggable なし、署名は同じアップロード鍵（SHA-256 `FE:AF:C5:46:…:23:05`）、`zipalign -c -P 16` 成功、APK・AAB の game.js に `shout:'イエッタイガー！'`。
+- 提出ファイル：デスクトップ `ドル現場防衛線\GooglePlay提出\idoldefense-v1.7.1-vc4-release.aab`（SHA-256 `22973cae…5e33a4`）と `…-実機確認用.apk`。versionCode 3 のファイルも同じフォルダに残っている（叫びなし）。
+- 未実施：実機確認、Play へのアップロード（オーナー）、iOS 1.7.1（4）（MAC-009 で Mac 側へ依頼）。
+
 # Android：署名AAB v1.7.1（versionCode 3、夜明けレイズ入り）/ 2026-11-27（Windows）
 
 - `feature/unity-ads-interstitial` に iOS 広告ブランチ `ios/unity-ads-20261120`（MAC-005）と `feat/yoake-raise`（夜明けレイズ・見出し変更・警戒事項の秒数を伏せる）をマージ。privacy.html の衝突は公開中の main と同じ版を採用。
