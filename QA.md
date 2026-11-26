@@ -1,3 +1,12 @@
+# Android：署名AAB v1.7.1（versionCode 3、夜明けレイズ入り）/ 2026-11-27（Windows）
+
+- `feature/unity-ads-interstitial` に iOS 広告ブランチ `ios/unity-ads-20261120`（MAC-005）と `feat/yoake-raise`（夜明けレイズ・見出し変更・警戒事項の秒数を伏せる）をマージ。privacy.html の衝突は公開中の main と同じ版を採用。
+- versionCode 2→3、versionName 1.7.0→1.7.1、iOS は MARKETING_VERSION 1.7.1 ／ CURRENT_PROJECT_VERSION 3。画面表示 VER. 1.7.1、キャッシュ用クエリ `?v=1.7.1-20261127-yoake`。
+- `npm test`（38件）、`node --test test-sharing.cjs test-ads.cjs`（19件）PASS → `npm run build:android:release`（ANDROID_HOME=%LOCALAPPDATA%\Android\Sdk）BUILD SUCCESSFUL。
+- 確認（aapt2 / apksigner / zipalign）：package `jp.kmccreativelab.idoldefense`、versionCode 3、versionName 1.7.1、ラベル「アイドル現場防衛戦」、debuggable なし。署名は v1.6.0／1.7.0 と同じアップロード鍵（SHA-256 `FE:AF:C5:46:…:23:05`）。`zipalign -c -P 16` 成功。APK・AAB 内の game.js に夜明けレイズ（カード表示「一定時間が経過すると、サイリウム投げ大量発生」）、「開演20秒」の文言なし、index.html に「今日の防衛する現場を選べ。」「VER. 1.7.1」。
+- 提出ファイル：デスクトップ `ドル現場防衛線\GooglePlay提出\idoldefense-v1.7.1-vc3-release.aab`（SHA-256 `9389ca58…1d9686`）と同じ中身の `…-実機確認用.apk`。
+- 未実施：実機での確認、Play Console へのアップロード（オーナー）、iOS 1.7.1（3）のビルド（MAC-008 で Mac 側へ依頼）。
+
 # iOS：Unity Ads 組み込み v1.7.0（ビルド2）/ 2026-11-20（Mac・MAC-005）
 
 環境: macOS 26.5.2 / Xcode 26.5 / iOS Simulator 26.5（iPhone 17 Pro Max、iPad Air 13-inch (M4)）/ Node.js 26.8.1。ブランチ `ios/unity-ads-20261120`（`feature/unity-ads-interstitial` `b525e59` から）。
