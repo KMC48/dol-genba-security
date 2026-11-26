@@ -15,7 +15,7 @@ const GROUPS=[
  // Added after the hidden lineup so saved records keyed by index stay put; the menu lists it before the hidden one.
  // At flood.at seconds a burst of throwers appears; from then on every new offender is a throw (TYPES[3]).
  // Not part of the hidden-lineup unlock condition, so players who already unlocked it keep it.
- {name:'夜明けレイズ',tag:'一定時間が経過すると、サイリウム投げ大量発生',color:'#8fb6ff',noUnlock:true,flood:{at:20,type:3,burst:8,spawnRate:2.2},weights:[18,18,18,10,18,15],line:'夜明けに降るのは、光だけでいい！',brief:'開演20秒、夜明けと同時にサイリウム投げが大量発生！ そこから先に現れる厄介オタクは全員サイリウム投げ。降りそそぐ光の雨からステージを守り抜け。',voices:['夜明け前が、いちばん危ない。','空から降るのは朝日だけ！','夜が明けても、投げさせない！']}
+ {name:'夜明けレイズ',tag:'一定時間が経過すると、サイリウム投げ大量発生',color:'#8fb6ff',noUnlock:true,flood:{at:20,type:3,burst:8,spawnRate:2.2},weights:[18,18,18,10,18,15],line:'夜明けに降るのは、光だけでいい！',brief:'一定時間が経過すると、夜明けとともにサイリウム投げが大量発生！ そこから先に現れる厄介オタクは全員サイリウム投げ。降りそそぐ光の雨からステージを守り抜け。',voices:['夜明け前が、いちばん危ない。','空から降るのは朝日だけ！','夜が明けても、投げさせない！']}
 ];
 const TYPES=[
  {name:'リフト',short:'リフト',mark:'↑',color:'#ff8499',sprite:4,quote:'肩車席は販売してません！'},
