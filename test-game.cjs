@@ -187,15 +187,21 @@ t.setConfig(0,4);t.goMenu();assert(getEl('missionBrief').textContent.includes('�
 {const html=getEl('groups').innerHTML;assert(html.includes('夜明けレイズ')&&html.indexOf('夜明けレイズ')<html.indexOf('アニマルプラネット'))}
 const dawnRuns=[];
 for(let venue=0;venue<4;venue++){
- t.setConfig(venue,5);t.resetGame();t.beginPlay();const st=t.getState();const preIds=new Set(),preTypes=new Set(),post=new Map(),rareIds=new Set();let rareAt=null;
+ t.setConfig(venue,5);t.resetGame();t.beginPlay();const st=t.getState();let shouts=0;const preIds=new Set(),preTypes=new Set(),post=new Map(),rareIds=new Set();let rareAt=null;
  st.fans.filter(f=>!f.normal).forEach(f=>{preIds.add(f.id);preTypes.add(f.type)});
  for(let i=0;i<1220&&t.getMode()==='playing';i++){
-  const wasFlooded=st.flooded;t.update(.05);
-  if(st.flooded&&!wasFlooded)assert(st.elapsed>=20&&st.elapsed<20.1,'flood starts at 20 s');
+  const wasFlooded=st.flooded,wasShout=st.shoutAt;t.update(.05);
+  if(st.flooded&&!wasFlooded){assert(st.elapsed>=20&&st.elapsed<20.1,'flood starts at 20 s');assert(st.shoutAt!==null&&st.shoutAt<st.elapsed,'the shout comes before the flood')}
+  if(st.shoutAt!==null&&wasShout===null){
+   assert(st.shoutAt>=18.8&&st.shoutAt<18.9,`shout 1.2 s before the flood: ${st.shoutAt}`);assert(!st.flooded,'no flood yet at the shout');
+   const caller=st.fans.find(f=>f.id===st.callerId);assert(caller&&caller.type===3&&!caller.normal,'the shouting otaku is a glowstick thrower');
+   assert(caller.slot>=8,'the caller stands in the back half so the bubble stays visible');assert(getEl('statusLine').textContent.includes('イエッタイガー！'));s.anim=0;t.drawGame();shouts++}
+
   for(const f of st.fans){if(f.normal||preIds.has(f.id)||post.has(f.id))continue;if(f.type===6){rareIds.add(f.id);rareAt=st.elapsed;preIds.add(f.id);continue}if(!st.flooded){preIds.add(f.id);preTypes.add(f.type)}else post.set(f.id,f.type)}
  }
  assert.equal(t.getMode(),'result');assert.equal(rareIds.size,1,'connection fan still appears once');assert(rareAt<20,'connection fan comes before the flood');
  assert(preTypes.size>=3,`mixed offenders before 20 s at venue ${venue}`);
+ assert.equal(shouts,1,'exactly one shout per play');
  assert(post.size>=25,`many throwers after the flood at venue ${venue}: ${post.size}`);
  assert([...post.values()].every(type=>type===3),'only throws after the flood');
  dawnRuns.push({venue,throwsAfterFlood:post.size,typesBefore:preTypes.size});t.goMenu();
