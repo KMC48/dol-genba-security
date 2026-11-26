@@ -183,7 +183,28 @@ for(let venue=0;venue<4;venue++){
  assert(animal>=regular*3,`animal planet x3 at venue ${venue}: ${animal} vs ${regular}`);
 }
 t.setConfig(0,4);t.goMenu();assert(getEl('missionBrief').textContent.includes('動物園状態'));t.setConfig(0,0);
-console.log(JSON.stringify({checks:'PASS',animal:animalRuns,missions:runs,note:'Logic checks only; not browser or native-device validation'},null,2));
+// 夜明けレイズ (GROUPS[5]): listed before the hidden lineup; from 20 s every new offender is a throw.
+{const html=getEl('groups').innerHTML;assert(html.includes('夜明けレイズ')&&html.indexOf('夜明けレイズ')<html.indexOf('アニマルプラネット'))}
+const dawnRuns=[];
+for(let venue=0;venue<4;venue++){
+ t.setConfig(venue,5);t.resetGame();t.beginPlay();const st=t.getState();const preIds=new Set(),preTypes=new Set(),post=new Map(),rareIds=new Set();let rareAt=null;
+ st.fans.filter(f=>!f.normal).forEach(f=>{preIds.add(f.id);preTypes.add(f.type)});
+ for(let i=0;i<1220&&t.getMode()==='playing';i++){
+  const wasFlooded=st.flooded;t.update(.05);
+  if(st.flooded&&!wasFlooded)assert(st.elapsed>=20&&st.elapsed<20.1,'flood starts at 20 s');
+  for(const f of st.fans){if(f.normal||preIds.has(f.id)||post.has(f.id))continue;if(f.type===6){rareIds.add(f.id);rareAt=st.elapsed;preIds.add(f.id);continue}if(!st.flooded){preIds.add(f.id);preTypes.add(f.type)}else post.set(f.id,f.type)}
+ }
+ assert.equal(t.getMode(),'result');assert.equal(rareIds.size,1,'connection fan still appears once');assert(rareAt<20,'connection fan comes before the flood');
+ assert(preTypes.size>=3,`mixed offenders before 20 s at venue ${venue}`);
+ assert(post.size>=25,`many throwers after the flood at venue ${venue}: ${post.size}`);
+ assert([...post.values()].every(type=>type===3),'only throws after the flood');
+ dawnRuns.push({venue,throwsAfterFlood:post.size,typesBefore:preTypes.size});t.goMenu();
+}
+// Perfect play on 夜明けレイズ can still reach S, and the lineup does not change the hidden-lineup unlock.
+t.setConfig(3,5);t.resetGame();t.beginPlay();s=t.getState();
+for(let i=0;i<1220&&t.getMode()==='playing';i++){for(const f of s.fans)if(!f.normal&&f.status==='active')t.chooseFan(f);if(s.charge>=100)t.special();t.update(.05)}
+assert.equal(s.rank,'S','perfect play on 夜明けレイズ earns S');assert.equal(s.missed,0);t.goMenu();t.setConfig(0,0);
+console.log(JSON.stringify({checks:'PASS',animal:animalRuns,dawn:dawnRuns,missions:runs,note:'Logic checks only; not browser or native-device validation'},null,2));
 
 })().catch(e=>{console.error(e);process.exit(1)});
 
