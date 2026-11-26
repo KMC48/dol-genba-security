@@ -11,3 +11,6 @@ capacitor-cordova-ios-plugins
 # Generated Config files
 App/App/capacitor.config.json
 App/App/config.xml
+
+# Unity Ads iOS SDK (downloaded by scripts/fetch-unity-ads-ios.mjs)
+App/Frameworks
