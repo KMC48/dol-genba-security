@@ -247,7 +247,7 @@ const GAME_SHARE_URL='https://kmc48.github.io/dol-genba-security/';
 let resultShareBusy=false;
 function resultShareData(){
  if(mode!=='result'||!state)return null;
- return {title:'ドル現場防衛戦｜現場報告',text:`厄介オタクを${state.count}人退場させた！\n${VENUES[chosenVenue].name} × ${GROUPS[chosenGroup].name}\n${state.rank}評価「${RANKS[state.rank].title}」 / ${state.score.toLocaleString('ja-JP')}点\n#ドル現場防衛戦 #現場報告`,url:GAME_SHARE_URL};
+ return {title:'アイドル現場防衛戦｜現場報告',text:`厄介オタクを${state.count}人退場させた！\n${VENUES[chosenVenue].name} × ${GROUPS[chosenGroup].name}\n${state.rank}評価「${RANKS[state.rank].title}」 / ${state.score.toLocaleString('ja-JP')}点\n#アイドル現場防衛戦 #現場報告`,url:GAME_SHARE_URL};
 }
 function showShareFallback(data,message){
  $('shareText').value=`${data.text}\n${data.url}`;$('shareFallback').hidden=false;setText('shareStatus',message);
