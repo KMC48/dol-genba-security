@@ -13,9 +13,10 @@ const GROUPS=[
  // Hidden lineup: appears after S-rank clears on all four regular lineups.
  {name:'アニマルプラネット',tag:'現場はまるで動物園状態',color:'#9be56d',hidden:true,spawnRate:3.6,weights:[17,17,17,17,17,15],line:'ここはライブ会場。動物園じゃない！',brief:'現場はまるで動物園状態！ あらゆる厄介オタクが他の現場の3倍の勢いで押し寄せ、所構わず暴れ回る。檻はない。頼れるのは君の指先だけだ。',voices:['ここは動物園じゃない、ライブ会場だ！','檻がない！ 警備で囲め！','野生の厄介、群れで出現！']},
  // Added after the hidden lineup so saved records keyed by index stay put; the menu lists it before the hidden one.
- // At flood.at seconds a burst of throwers appears; from then on every new offender is a throw (TYPES[3]).
+ // shoutLead seconds before flood.at one thrower appears and shouts flood.shout (speech bubble + sound);
+ // at flood.at a burst of throwers appears; from then on every new offender is a throw (TYPES[3]).
  // Not part of the hidden-lineup unlock condition, so players who already unlocked it keep it.
- {name:'夜明けレイズ',tag:'一定時間が経過すると、サイリウム投げ大量発生',color:'#8fb6ff',noUnlock:true,flood:{at:20,type:3,burst:8,spawnRate:2.2},weights:[18,18,18,10,18,15],line:'夜明けに降るのは、光だけでいい！',brief:'一定時間が経過すると、夜明けとともにサイリウム投げが大量発生！ そこから先に現れる厄介オタクは全員サイリウム投げ。降りそそぐ光の雨からステージを守り抜け。',voices:['夜明け前が、いちばん危ない。','空から降るのは朝日だけ！','夜が明けても、投げさせない！']}
+ {name:'夜明けレイズ',tag:'一定時間が経過すると、サイリウム投げ大量発生',color:'#8fb6ff',noUnlock:true,flood:{at:20,type:3,burst:8,spawnRate:2.2,shout:'イエッタイガー！',shoutLead:1.2},weights:[18,18,18,10,18,15],line:'夜明けに降るのは、光だけでいい！',brief:'一定時間が経過すると、夜明けとともにサイリウム投げが大量発生！ そこから先に現れる厄介オタクは全員サイリウム投げ。降りそそぐ光の雨からステージを守り抜け。',voices:['夜明け前が、いちばん危ない。','空から降るのは朝日だけ！','夜が明けても、投げさせない！']}
 ];
 const TYPES=[
  {name:'リフト',short:'リフト',mark:'↑',color:'#ff8499',sprite:4,quote:'肩車席は販売してません！'},
@@ -95,6 +96,8 @@ function tone(freq,duration=.1,type='square',volume=.035,delay=0){
  if(!audioOn||!audioCtx)return;try{const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(volume,audioCtx.currentTime+delay);g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+delay+duration);o.connect(g);g.connect(audioCtx.destination);o.start(audioCtx.currentTime+delay);o.stop(audioCtx.currentTime+delay+duration)}catch{}
 }
 function soundSuccess(){tone(600,.07);tone(900,.09,'square',.025,.065)}
+// A rising call for the 夜明けレイズ shout (no recorded voice; synthesized like the other sounds).
+function shoutSound(){[[523,.07],[659,.07],[784,.08],[1047,.34]].forEach(([f,d],i)=>tone(f,d,'sawtooth',.05,i*.085))}
 function music(dt){if(!audioOn||!audioCtx)return;musicClock-=dt;if(musicClock>0)return;musicClock=.19;const melody=[523,659,784,659,880,784,659,587,523,659,784,1047,988,784,659,587];tone(melody[musicBeat%16],.12,'square',.011);if(musicBeat%2===0)tone([131,131,175,196][Math.floor(musicBeat/4)%4],.15,'triangle',.032);musicBeat++}
 function setSound(on){audioOn=on;if(audioOn){const AC=window.AudioContext||window.webkitAudioContext;if(!AC){audioOn=false;setText('soundBtn','音 非対応');return}audioCtx??=new AC();audioCtx.resume().catch(()=>{})}else{audioCtx?.suspend().catch(()=>{})}setText('soundBtn',audioOn?'音 ON':'音 OFF');$('soundBtn').setAttribute('aria-label',audioOn?'サウンドをオフにする':'サウンドをオンにする')}
 $('soundBtn').onclick=()=>{setSound(!audioOn);tone(660,.08)};
@@ -111,11 +114,11 @@ function frontRowY(venue=chosenVenue){return 720*STAGE_LAYOUT[venue].lip+106}
 function idolPose(venue=chosenVenue,index=2,w=640,h=720){const layout=STAGE_LAYOUT[venue];return {x:w*(.29+index*.105),y:h*layout.feet,height:(layout.idolHeight+(index===2?8:0))*h/720}}
 function allSlots(){const result=[],front=frontRowY();for(let r=0;r<4;r++)for(let c=0;c<4;c++)result.push({slot:r*4+c,x:128+c*128,y:front+r*(627-front)/3});return result}
 function freeSlots(){return allSlots().filter(s=>!state.fans.some(f=>f.slot===s.slot&&f.status!=='gone'))}
-function spawnFan(normal=false,type=null,entering=false){
+function spawnFan(normal=false,type=null,entering=false,minSlot=0){
  const which=type??weightedType(),rare=!normal&&which===6;
  if(rare&&state.rareSpawned)return null;
  const life=rare?RARE_LIFETIME:which===5?7:VENUES[chosenVenue].life;
- const rowFilter=s=>normal?s.slot>=4:which===4?s.slot<4:which===5?s.slot>=8:true;
+ const rowFilter=s=>s.slot>=minSlot&&(normal?s.slot>=4:which===4?s.slot<4:which===5?s.slot>=8:true);
  // Never put a front-row monopolizer in another row when the front is full.
  let pool=freeSlots().filter(rowFilter),crowded=false;
  if(!pool.length&&!rare){
@@ -139,12 +142,13 @@ function spawnFan(normal=false,type=null,entering=false){
 }
 function spawnScheduledFans(){
  const flood=GROUPS[chosenGroup].flood;
+ if(flood&&state.shoutAt===null&&state.elapsed>=flood.at-flood.shoutLead){state.shoutAt=state.elapsed;const f=spawnFan(false,flood.type,false,8);state.callerId=f?f.id:null;setText('statusLine','客席から「'+flood.shout+'」の声…！');log('オタク',flood.shout);shoutSound()}
  if(flood&&!state.flooded&&state.elapsed>=flood.at){state.flooded=true;for(let i=0;i<flood.burst;i++)spawnFan(false,flood.type);state.spawnClock=Math.min(state.spawnClock,.3);announce('夜明け！ サイリウム投げ大量発生！',2.4);setText('statusLine','ここから先は全員サイリウム投げ！ 次々止めろ！');log('HQ','夜明けと同時に、客席からサイリウムの雨。投げ手を全員止めろ！');tone(659,.1);tone(880,.12,'square',.035,.1);tone(1175,.2,'square',.035,.22)}
  if(!state.invasionSeen&&state.elapsed>=8){const f=spawnFan(false,5);if(f){state.invasionSeen=true;log('HQ','ステージへ向かう人物を確認。登られる前に止めろ！')}}
  if(!state.rareSpawned&&state.elapsed>=state.rareAt){const f=spawnFan(false,6);if(f){announce('4秒勝負！ 繋がりオタク出現',1.4);setText('statusLine','残り4秒！ 確保で10倍得点、見逃すと1人脱退・−1,000点。');log('RARE','アイドルとハートの相互通信…！ 見逃すと1人脱退・−1,000点。');tone(1047,.15);tone(1319,.2,'square',.03,.15)}}
 }
 function resetGame(){
- state={remaining:60,elapsed:0,count:0,score:0,combo:0,maxCombo:0,lastEject:-100,missed:0,mistakes:0,charge:0,breakdown:TYPES.map(()=>0),faceBreakdown:TYPES.map(()=>({})),crowdClock:2.5,crowdTarget:5,rareAt:rand(24,36),rareSpawned:false,rarePoints:0,rarePenalty:0,idolDeparture:null,invasionSeen:false,fans:[],effects:[],nextId:1,guard:{x:320,y:672},queue:[],spawnClock:0,countdown:3,lastBeep:4,rush:false,rushCycle:0,announcement:0,logs:[],pulse:0,anim:0,hudClock:0,flooded:false};
+ state={remaining:60,elapsed:0,count:0,score:0,combo:0,maxCombo:0,lastEject:-100,missed:0,mistakes:0,charge:0,breakdown:TYPES.map(()=>0),faceBreakdown:TYPES.map(()=>({})),crowdClock:2.5,crowdTarget:5,rareAt:rand(24,36),rareSpawned:false,rarePoints:0,rarePenalty:0,idolDeparture:null,invasionSeen:false,fans:[],effects:[],nextId:1,guard:{x:320,y:672},queue:[],spawnClock:0,countdown:3,lastBeep:4,rush:false,rushCycle:0,announcement:0,logs:[],pulse:0,anim:0,hudClock:0,flooded:false,shoutAt:null,callerId:null};
  // 夜明けレイズ: after the flood every new offender is a throw, so the once-per-play connection fan comes before it.
  const flood=GROUPS[chosenGroup].flood;if(flood)state.rareAt=rand(10,flood.at-RARE_LIFETIME-1);
  for(let i=0;i<5;i++)spawnFan(true);
@@ -425,6 +429,16 @@ function drawFan(c,f,time){
  }
  c.restore();
 }
+// Speech bubble over the otaku who shouts right before the 夜明けレイズ flood.
+function drawShout(c){
+ const flood=GROUPS[chosenGroup].flood;if(!flood||state.shoutAt===null)return;const t=state.elapsed-state.shoutAt;if(t>2.4)return;
+ const f=state.fans.find(f=>f.id===state.callerId);if(!f||f.status==='gone')return;
+ const w=224,h=46,lab=fanLabel(f),x=clamp(f.x,w/2+8,640-w/2-8),y=Math.max(h+8,lab.y-36),pop=reduced?1:Math.min(1,.55+t*5),shake=reduced||t>.6?0:Math.sin(t*60)*2;
+ c.save();c.globalAlpha=t>2?Math.max(0,(2.4-t)/.4):1;c.translate(x+shake,y);c.scale(pop,pop);
+ c.fillStyle='#fff';c.strokeStyle='#0b1016';c.lineWidth=3;c.fillRect(-w/2,-h,w,h);c.strokeRect(-w/2,-h,w,h);
+ const tx=clamp(f.x-x,-w/2+18,w/2-18);c.beginPath();c.moveTo(tx-9,-1);c.lineTo(tx,14);c.lineTo(tx+9,-1);c.closePath();c.fill();c.beginPath();c.moveTo(tx-9,0);c.lineTo(tx,14);c.lineTo(tx+9,0);c.stroke();
+ pixelText(c,flood.shout,0,-14,'#0b2012',25);c.restore();
+}
 function drawGame(){
  if(!state)return;const time=state.anim;ctx.clearRect(0,0,640,720);drawVenue(ctx,640,720,time);
  pixelText(ctx,GROUPS[chosenGroup].name,320,chosenVenue===0?105:chosenVenue===1?133:150,GROUPS[chosenGroup].color,17);
@@ -436,6 +450,7 @@ function drawGame(){
  for(const f of sorted){if(!guardDrawn&&f.y>state.guard.y){guard();guardDrawn=true}drawFan(ctx,f,time)}if(!guardDrawn)guard();
  // Moving audience members must never cover an offense marker.
  for(const f of sorted)if(!f.normal&&f.status==='active')drawFanLabel(ctx,f);
+ drawShout(ctx);
  if(state.pulse>0){ctx.strokeStyle=`rgba(197,250,95,${state.pulse})`;ctx.lineWidth=8;ctx.beginPath();ctx.arc(state.guard.x,state.guard.y,(1-state.pulse)*1100,0,Math.PI*2);ctx.stroke();drawSprite(ctx,1,90+(1-state.pulse)*400,650,100);drawSprite(ctx,1,550-(1-state.pulse)*400,425,94)}
  for(const e of state.effects){ctx.save();ctx.globalAlpha=Math.min(1,e.life/e.max*2);if(e.particle){ctx.fillStyle=e.color;ctx.fillRect(e.x,e.y,5,5)}else pixelText(ctx,e.text,e.x,e.y,e.color,22);ctx.restore()}
 }
