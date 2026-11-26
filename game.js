@@ -11,7 +11,11 @@ const GROUPS=[
  {name:'放課後ルミナリンク',tag:'爆光サイリウム多発',color:'#ffcb7a',weights:[8,8,47,12,10,15],line:'光量で愛を証明しない！',brief:'過剰な光害に警戒。推しより眩しいオタクを見つけろ。',voices:['そこだけ昼公演になってる！','推しより目立つな、その光！','その光量、照明さんも二度見。']},
  {name:'純情アンコール',tag:'不当な最前管理多発',color:'#d8acff',weights:[12,8,8,10,47,15],line:'最前列は私有地じゃない！',brief:'不当な最前管理に警戒。勝手な場所取りから最前列を守れ。',voices:['その仕切り、誰の許可？','整理番号より強い権力、ありません！','そこ、あなたの指定席ではありません。']},
  // Hidden lineup: appears after S-rank clears on all four regular lineups.
- {name:'アニマルプラネット',tag:'現場はまるで動物園状態',color:'#9be56d',hidden:true,spawnRate:3.6,weights:[17,17,17,17,17,15],line:'ここはライブ会場。動物園じゃない！',brief:'現場はまるで動物園状態！ あらゆる厄介オタクが他の現場の3倍の勢いで押し寄せ、所構わず暴れ回る。檻はない。頼れるのは君の指先だけだ。',voices:['ここは動物園じゃない、ライブ会場だ！','檻がない！ 警備で囲め！','野生の厄介、群れで出現！']}
+ {name:'アニマルプラネット',tag:'現場はまるで動物園状態',color:'#9be56d',hidden:true,spawnRate:3.6,weights:[17,17,17,17,17,15],line:'ここはライブ会場。動物園じゃない！',brief:'現場はまるで動物園状態！ あらゆる厄介オタクが他の現場の3倍の勢いで押し寄せ、所構わず暴れ回る。檻はない。頼れるのは君の指先だけだ。',voices:['ここは動物園じゃない、ライブ会場だ！','檻がない！ 警備で囲め！','野生の厄介、群れで出現！']},
+ // Added after the hidden lineup so saved records keyed by index stay put; the menu lists it before the hidden one.
+ // At flood.at seconds a burst of throwers appears; from then on every new offender is a throw (TYPES[3]).
+ // Not part of the hidden-lineup unlock condition, so players who already unlocked it keep it.
+ {name:'夜明けレイズ',tag:'一定時間が経過すると、サイリウム投げ大量発生',color:'#8fb6ff',noUnlock:true,flood:{at:20,type:3,burst:8,spawnRate:2.2},weights:[18,18,18,10,18,15],line:'夜明けに降るのは、光だけでいい！',brief:'開演20秒、夜明けと同時にサイリウム投げが大量発生！ そこから先に現れる厄介オタクは全員サイリウム投げ。降りそそぐ光の雨からステージを守り抜け。',voices:['夜明け前が、いちばん危ない。','空から降るのは朝日だけ！','夜が明けても、投げさせない！']}
 ];
 const TYPES=[
  {name:'リフト',short:'リフト',mark:'↑',color:'#ff8499',sprite:4,quote:'肩車席は販売してません！'},
@@ -66,14 +70,17 @@ let qualifyingClears=[...new Set([...sClears,...loadClears(QUALIFYING_CLEAR_KEY)
 // Release default for static Web and bundled native apps. Only serve.mjs --debug-unlock
 // replaces this declaration in its HTTP response; it never modifies this source file.
 const DEBUG_UNLOCK=false;
-const hiddenUnlocked=()=>DEBUG_UNLOCK||REGULAR_GROUPS.every(i=>qualifyingClears.includes(i));
+const UNLOCK_GROUPS=REGULAR_GROUPS.filter(i=>!GROUPS[i].noUnlock);
+const hiddenUnlocked=()=>DEBUG_UNLOCK||UNLOCK_GROUPS.every(i=>qualifyingClears.includes(i));
+// Menu order: regular lineups first, the hidden lineup last.
+const MENU_GROUPS=[...REGULAR_GROUPS,...GROUPS.map((g,i)=>i).filter(i=>GROUPS[i].hidden)];
 const rand=(a,b)=>a+Math.random()*(b-a),clamp=(n,a,b)=>Math.min(b,Math.max(a,n));
 const bestKey=()=>`${chosenVenue}-${chosenGroup}`;
 function setText(id,v){$(id).textContent=v}
 function buildMenu(){
  $('venues').innerHTML=VENUES.map((v,i)=>`<button class="venue-card" data-venue="${i}" aria-pressed="${i===chosenVenue}"><span class="card-meta"><span>${v.tag}</span><strong>${v.level}</strong></span><b>${v.name}</b></button>`).join('');
  if(GROUPS[chosenGroup].hidden&&!hiddenUnlocked())chosenGroup=0;
- $('groups').innerHTML=GROUPS.map((g,i)=>g.hidden&&!hiddenUnlocked()
+ $('groups').innerHTML=MENU_GROUPS.map(i=>[GROUPS[i],i]).map(([g,i])=>g.hidden&&!hiddenUnlocked()
   ?`<button class="group-card is-locked" data-group="${i}" aria-pressed="false" disabled aria-label="隠しアイドル：全アイドルA評価以上で出演"><span class="group-color"></span><b>？？？</b><small>全アイドルA評価以上で出演</small></button>`
   :`<button class="group-card${g.hidden?' is-hidden':''}" data-group="${i}" aria-pressed="${i===chosenGroup}" style="--group-color:${g.color}"><span class="group-color"></span><b>${g.name}</b><small>${g.tag}</small></button>`).join('');
  document.querySelectorAll('[data-venue]').forEach(b=>b.onclick=()=>{chosenVenue=Number(b.dataset.venue);buildMenu();tone(420,.06)});
@@ -98,7 +105,7 @@ function updateTitleBest(){const top=Object.values(bests).filter(b=>b&&Number.is
 updateTitleBest();
 $('titleSound').onclick=()=>leaveTitle(true);$('titleMute').onclick=()=>leaveTitle(false);
 [['titleSound',0],['titleMute',1]].forEach(([id,i])=>{$(id).addEventListener('pointerenter',()=>{titleChoice=i;updateTitleCursor()});$(id).addEventListener('focus',()=>{titleChoice=i;updateTitleCursor()})});
-function weightedType(){const weights=GROUPS[chosenGroup].weights;let n=rand(0,weights.reduce((a,b)=>a+b,0));for(let i=0;i<weights.length;i++){n-=weights[i];if(n<0)return i}return weights.length-1}
+function weightedType(){if(state?.flooded)return GROUPS[chosenGroup].flood.type;const weights=GROUPS[chosenGroup].weights;let n=rand(0,weights.reduce((a,b)=>a+b,0));for(let i=0;i<weights.length;i++){n-=weights[i];if(n<0)return i}return weights.length-1}
 function stageY(venue=chosenVenue){return 720*STAGE_LAYOUT[venue].feet}
 function frontRowY(venue=chosenVenue){return 720*STAGE_LAYOUT[venue].lip+106}
 function idolPose(venue=chosenVenue,index=2,w=640,h=720){const layout=STAGE_LAYOUT[venue];return {x:w*(.29+index*.105),y:h*layout.feet,height:(layout.idolHeight+(index===2?8:0))*h/720}}
@@ -131,11 +138,15 @@ function spawnFan(normal=false,type=null,entering=false){
  state.fans.push(fan);return fan;
 }
 function spawnScheduledFans(){
+ const flood=GROUPS[chosenGroup].flood;
+ if(flood&&!state.flooded&&state.elapsed>=flood.at){state.flooded=true;for(let i=0;i<flood.burst;i++)spawnFan(false,flood.type);state.spawnClock=Math.min(state.spawnClock,.3);announce('夜明け！ サイリウム投げ大量発生！',2.4);setText('statusLine','ここから先は全員サイリウム投げ！ 次々止めろ！');log('HQ','夜明けと同時に、客席からサイリウムの雨。投げ手を全員止めろ！');tone(659,.1);tone(880,.12,'square',.035,.1);tone(1175,.2,'square',.035,.22)}
  if(!state.invasionSeen&&state.elapsed>=8){const f=spawnFan(false,5);if(f){state.invasionSeen=true;log('HQ','ステージへ向かう人物を確認。登られる前に止めろ！')}}
  if(!state.rareSpawned&&state.elapsed>=state.rareAt){const f=spawnFan(false,6);if(f){announce('4秒勝負！ 繋がりオタク出現',1.4);setText('statusLine','残り4秒！ 確保で10倍得点、見逃すと1人脱退・−1,000点。');log('RARE','アイドルとハートの相互通信…！ 見逃すと1人脱退・−1,000点。');tone(1047,.15);tone(1319,.2,'square',.03,.15)}}
 }
 function resetGame(){
- state={remaining:60,elapsed:0,count:0,score:0,combo:0,maxCombo:0,lastEject:-100,missed:0,mistakes:0,charge:0,breakdown:TYPES.map(()=>0),faceBreakdown:TYPES.map(()=>({})),crowdClock:2.5,crowdTarget:5,rareAt:rand(24,36),rareSpawned:false,rarePoints:0,rarePenalty:0,idolDeparture:null,invasionSeen:false,fans:[],effects:[],nextId:1,guard:{x:320,y:672},queue:[],spawnClock:0,countdown:3,lastBeep:4,rush:false,rushCycle:0,announcement:0,logs:[],pulse:0,anim:0,hudClock:0};
+ state={remaining:60,elapsed:0,count:0,score:0,combo:0,maxCombo:0,lastEject:-100,missed:0,mistakes:0,charge:0,breakdown:TYPES.map(()=>0),faceBreakdown:TYPES.map(()=>({})),crowdClock:2.5,crowdTarget:5,rareAt:rand(24,36),rareSpawned:false,rarePoints:0,rarePenalty:0,idolDeparture:null,invasionSeen:false,fans:[],effects:[],nextId:1,guard:{x:320,y:672},queue:[],spawnClock:0,countdown:3,lastBeep:4,rush:false,rushCycle:0,announcement:0,logs:[],pulse:0,anim:0,hudClock:0,flooded:false};
+ // 夜明けレイズ: after the flood every new offender is a throw, so the once-per-play connection fan comes before it.
+ const flood=GROUPS[chosenGroup].flood;if(flood)state.rareAt=rand(10,flood.at-RARE_LIFETIME-1);
  for(let i=0;i<5;i++)spawnFan(true);
  mode='countdown';document.body.classList.add('playing');$('menu').classList.add('hidden');$('play').classList.remove('hidden');
  setText('playVenue',VENUES[chosenVenue].full);setText('playGroup',GROUPS[chosenGroup].name);setText('statusLine','赤いマークの違反者をタップ！');
@@ -324,7 +335,7 @@ function update(dt){
  const rushNow=(state.elapsed>=15&&state.elapsed<21)||(state.elapsed>=32&&state.elapsed<38)||state.elapsed>=50;
  if(rushNow&&!state.rush){state.rush=true;state.spawnClock=.1;announce(state.elapsed>=50?'ラストサビ！ 最後まで守り抜け！':'サビ突入！ 厄介ラッシュ！',2);log('STAGE',GROUPS[chosenGroup].voices[state.rushCycle%3]);state.rushCycle++}else if(!rushNow)state.rush=false;
  state.spawnClock-=dt;
- if(state.spawnClock<=0){spawnFan(false);state.spawnClock=VENUES[chosenVenue].interval*(state.rush?.55:1)*rand(.85,1.15)/(GROUPS[chosenGroup].spawnRate||1)}
+ if(state.spawnClock<=0){spawnFan(false);state.spawnClock=VENUES[chosenVenue].interval*(state.rush?.55:1)*rand(.85,1.15)/(state.flooded?GROUPS[chosenGroup].flood.spawnRate:GROUPS[chosenGroup].spawnRate||1)}
  for(const f of state.fans){
   f.age+=dt;
   if(f.status==='exiting'){f.exit+=dt;f.x+=(f.x<320?-330:330)*dt;if(f.exit>.85)f.status='gone';continue}
